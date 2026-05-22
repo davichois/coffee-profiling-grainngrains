@@ -502,7 +502,7 @@ export default function FlavorWheel() {
   return (
     <div className="flex items-center justify-center gap-6 flex-col">
       {/* Export buttons — excluded from captured image */}
-      <div className="shrink-0 pt-10 self-center">
+      <div className="shrink-0 pt-2 md:pt-10 self-center">
         <GrainngrainsLogo tagline="Rueda de sabores" />
       </div>
 
