@@ -4,6 +4,7 @@ import { useState, useCallback, useRef } from "react";
 import { flavorWheelData, FlavorNode } from "../data/flavorWheel";
 import { toPng } from "html-to-image";
 import jsPDF from "jspdf";
+import { GrainngrainsLogo } from "./GrainngrainsLogo";
 
 const SVG_SIZE = 900;
 const CX = SVG_SIZE / 2;
@@ -501,7 +502,11 @@ export default function FlavorWheel() {
   return (
     <div className="flex items-center justify-center gap-6 flex-col">
       {/* Export buttons — excluded from captured image */}
-      <div className="flex gap-3 pt-10">
+      <div className="shrink-0 pt-10 self-center">
+        <GrainngrainsLogo tagline="Rueda de sabores" />
+      </div>
+
+      <div className="flex gap-3">
         <button
           onClick={exportPng}
           className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold"
@@ -793,9 +798,12 @@ export default function FlavorWheel() {
           </div>
         )}
 
-        <span style={{ fontSize: 12, color: "#6b6b6b" }}>
-          (c) 2026 Grain & Grains. Todos los derechos reservados. Inspirada en la
-          SCA.
+        <span
+          className="text-center"
+          style={{ fontSize: 12, color: "#6b6b6b" }}
+        >
+          (c) 2026 Grain & Grains. Todos los derechos reservados. Inspirada en
+          la SCA.
         </span>
       </div>
       {/* end captureRef */}
