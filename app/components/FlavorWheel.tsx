@@ -365,7 +365,9 @@ export default function FlavorWheel() {
 
   const exportPng = useCallback(async () => {
     if (!captureRef.current) return;
+    captureRef.current.classList.add("exporting");
     const dataUrl = await toPng(captureRef.current, CAPTURE_OPTIONS);
+    captureRef.current.classList.remove("exporting");
     const link = document.createElement("a");
     link.download = "perfil-cafe.png";
     link.href = dataUrl;
@@ -374,7 +376,9 @@ export default function FlavorWheel() {
 
   const exportPdf = useCallback(async () => {
     if (!captureRef.current) return;
+    captureRef.current.classList.add("exporting");
     const dataUrl = await toPng(captureRef.current, CAPTURE_OPTIONS);
+    captureRef.current.classList.remove("exporting");
     const img = new Image();
     img.src = dataUrl;
     await new Promise<void>((resolve) => {
@@ -500,174 +504,155 @@ export default function FlavorWheel() {
   segments.forEach((seg) => nodeMap.current.set(seg.node.id, seg.node));
 
   return (
-    <div className="flex items-center justify-center gap-6 flex-col">
+    <div className="flex items-center justify-center gap-4 sm:gap-6 flex-col w-full max-w-2xl mx-auto ">
       {/* Export buttons — excluded from captured image */}
-      <div className="shrink-0 pt-2 md:pt-10 self-center">
-        <GrainngrainsLogo tagline="Rueda de sabores" />
-      </div>
+      {/* Logo */}
 
-      <div className="flex gap-3">
-        <button
-          onClick={exportPng}
-          className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold"
-          style={{
-            backgroundColor: "#1a0a00",
-            color: "#faf6f2",
-            fontFamily: "Montserrat, sans-serif",
-            cursor: "pointer",
-            border: "none",
-          }}
-          onMouseEnter={(e) =>
-            (e.currentTarget.style.backgroundColor = "#000000")
-          }
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.backgroundColor = "#000000")
-          }
-        >
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between w-full px-3 sm:px-4">
+        <div className="hidden justify-center sm:justify-start md:flex">
+          <GrainngrainsLogo tagline="Rueda de sabores" />
+        </div>
+
+        <div className="grid grid-cols-1 xs:grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:justify-end w-full sm:w-auto">
+          <button
+            onClick={exportPng}
+            className="flex w-full sm:w-auto items-center justify-center gap-2 px-5 py-3 sm:py-2 rounded-full text-sm font-semibold transition-colors duration-200"
+            style={{
+              backgroundColor: "#1a0a00",
+              color: "#faf6f2",
+              fontFamily: "Montserrat, sans-serif",
+              cursor: "pointer",
+              border: "none",
+              minHeight: 44,
+            }}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.backgroundColor = "#212121")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.backgroundColor = "#1a0a00")
+            }
           >
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-            <polyline points="7 10 12 15 17 10" />
-            <line x1="12" y1="15" x2="12" y2="3" />
-          </svg>
-          Exportar PNG
-        </button>
-        <button
-          onClick={exportPdf}
-          className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold"
-          style={{
-            backgroundColor: "#faf6f2",
-            color: "#1a0a00",
-            fontFamily: "Montserrat, sans-serif",
-            cursor: "pointer",
-            border: "1.5px solid #000000",
-          }}
-          onMouseEnter={(e) =>
-            (e.currentTarget.style.backgroundColor = "#f0e8df")
-          }
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.backgroundColor = "#ffffff")
-          }
-        >
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            Exportar PNG
+          </button>
+
+          {/* <button
+            onClick={exportPdf}
+            className="flex w-full sm:w-auto items-center justify-center gap-2 px-5 py-3 sm:py-2 rounded-full text-sm font-semibold transition-colors duration-200"
+            style={{
+              backgroundColor: "#faf6f2",
+              color: "#080808",
+              fontFamily: "Montserrat, sans-serif",
+              cursor: "pointer",
+              border: "1.5px solid #080808",
+              minHeight: 44,
+            }}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.backgroundColor = "#f4f4f4")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.backgroundColor = "#faf6f2")
+            }
           >
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-            <polyline points="14 2 14 8 20 8" />
-            <line x1="16" y1="13" x2="8" y2="13" />
-            <line x1="16" y1="17" x2="8" y2="17" />
-            <polyline points="10 9 9 9 8 9" />
-          </svg>
-          Exportar PDF
-        </button>
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+              <line x1="16" y1="13" x2="8" y2="13" />
+              <line x1="16" y1="17" x2="8" y2="17" />
+              <polyline points="10 9 9 9 8 9" />
+            </svg>
+            Exportar PDF
+          </button> */}
+        </div>
       </div>
 
       {/* Capture area */}
       <div
         ref={captureRef}
-        className="flex items-center justify-center gap-6 flex-col"
-        style={{ background: "#faf6f2", padding: "16px" }}
+        className="flex items-center justify-center gap-4 sm:gap-6 flex-col w-full"
+        style={{ background: "#faf6f2", padding: "8px 0 16px" }}
       >
-        <svg
-          width={SVG_SIZE}
-          height={SVG_SIZE}
-          viewBox={`0 0 ${SVG_SIZE} ${SVG_SIZE}`}
-          onPointerDown={onPointerDown}
-          onPointerMove={onPointerMove}
-          onPointerUp={onPointerUp}
-          onPointerCancel={onPointerUp}
-          style={{
-            maxWidth: "100%",
-            height: "auto",
-            cursor: isDragging ? "grabbing" : "grab",
-            touchAction: "none",
-            userSelect: "none",
-          }}
-        >
-          {/* Static center — does not rotate */}
-          <circle cx={CX} cy={CY} r={CENTER_R} fill="#ffffff" />
-          {/* Font sizes computed to fit the circle diameter (2 × CENTER_R) */}
-          <text
-            x={CX}
-            y={CY - 10}
-            textAnchor="middle"
-            dominantBaseline="middle"
-            fill="#1a0a00"
-            fontSize={Math.floor(
-              (CENTER_R * 2 * 0.82) / ("Coffee".length * 0.58),
-            )}
-            fontWeight="700"
-            fontFamily="Montserrat, sans-serif"
+        <div className="flex justify-center sm:justify-start md:hidden">
+          <GrainngrainsLogo tagline="Rueda de sabores" />
+        </div>
+        {/* On mobile: clip container so the wheel is bottom-docked and zoomed in.
+            On sm+: wrapper is transparent (overflow visible, auto size). */}
+        <div className="flavor-wheel-clip sm:contents">
+          <svg
+            width={SVG_SIZE}
+            height={SVG_SIZE}
+            viewBox={`0 0 ${SVG_SIZE} ${SVG_SIZE}`}
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+            onPointerCancel={onPointerUp}
+            style={{
+              maxWidth: "100%",
+              height: "auto",
+              cursor: isDragging ? "grabbing" : "grab",
+              touchAction: "none",
+              userSelect: "none",
+            }}
           >
-            G&G
-          </text>
-          <text
-            x={CX}
-            y={CY + 12}
-            textAnchor="middle"
-            dominantBaseline="middle"
-            fill="#6b6b6b"
-            fontSize={Math.floor(
-              (CENTER_R * 2 * 0.85) / ("Rueda de Sabores".length * 0.58),
-            )}
-            fontWeight="400"
-            fontFamily="Montserrat, sans-serif"
-          >
-            Rueda de Sabores
-          </text>
+            {/* Static center — does not rotate. Hidden on mobile via CSS (center sits at clip boundary) */}
+            <defs>
+              <clipPath id="center-logo-clip">
+                <circle cx={CX} cy={CY} r={CENTER_R - 2} />
+              </clipPath>
+            </defs>
+            <g className="center-logo-group">
+              <circle cx={CX} cy={CY} r={CENTER_R} fill="#faf6f2" />
+              <image
+                href="/grainngrains.svg"
+                x={CX - (CENTER_R - 14)}
+                y={CY - (CENTER_R - 14)}
+                width={(CENTER_R - 14) * 2}
+                height={(CENTER_R - 14) * 2}
+                preserveAspectRatio="xMidYMid meet"
+                clipPath="url(#center-logo-clip)"
+              />
+            </g>
 
-          {/* Rotating group */}
-          <g transform={`rotate(${rotation}, ${CX}, ${CY})`}>
-            {segments.map((seg) => {
-              const isOpen = openIds.has(seg.node.id);
-              const isSelected = selected.has(seg.node.id);
-              const isHovered = hovered === seg.node.id;
-              const arcSpan = seg.endAngle - seg.startAngle;
-
-              const baseColor = seg.node.color;
-              const fillColor = isSelected
-                ? "#f4c6a0"
-                : isHovered
-                  ? lighten(baseColor)
-                  : isOpen
-                    ? darken(baseColor)
-                    : baseColor;
-
-              // Tangent label rotation — stays readable regardless of wheel spin
-              const labelAngleInWorld = seg.labelAngle + rotation;
-              const rawRot = labelAngleInWorld + 180;
-              const rotate =
-                rawRot > 90 && rawRot < 270 ? rawRot + 180 : rawRot;
-
-              // Dynamic font size: fit label inside arc length
-              const midR = (RINGS[seg.ring].inner + RINGS[seg.ring].outer) / 2;
-              const arcLength = midR * ((arcSpan * Math.PI) / 180);
-              const maxFontSize =
-                seg.ring === 1 ? 13 : seg.ring === 2 ? 11 : 9.5;
-              // Montserrat avg char width ≈ 0.58× fontSize; add padding factor 0.85
-              const fitFontSize =
-                (arcLength * 0.85) / (seg.node.label.length * 0.58);
-              const fontSize = Math.min(maxFontSize, fitFontSize);
-              const showLabel = fontSize >= 5;
-
-              return (
-                <g key={seg.node.id}>
+            {/* Rotating group */}
+            {/* Rotating arcs — paths only, no labels */}
+            <g transform={`rotate(${rotation}, ${CX}, ${CY})`}>
+              {segments.map((seg) => {
+                const isOpen = openIds.has(seg.node.id);
+                const isSelected = selected.has(seg.node.id);
+                const isHovered = hovered === seg.node.id;
+                const baseColor = seg.node.color;
+                const fillColor = isSelected
+                  ? "#f4c6a0"
+                  : isHovered
+                    ? lighten(baseColor)
+                    : isOpen
+                      ? darken(baseColor)
+                      : baseColor;
+                return (
                   <path
+                    key={seg.node.id}
                     d={seg.path}
                     fill={fillColor}
                     stroke="#ffffff"
@@ -680,33 +665,66 @@ export default function FlavorWheel() {
                     onMouseEnter={() => !isDragging && setHovered(seg.node.id)}
                     onMouseLeave={() => setHovered(null)}
                   />
-                  {showLabel && (
-                    <text
-                      x={seg.labelX}
-                      y={seg.labelY}
-                      textAnchor="middle"
-                      dominantBaseline="middle"
-                      fontSize={fontSize}
-                      fontFamily="Montserrat, sans-serif"
-                      fontWeight={seg.ring <= 2 ? "600" : "400"}
-                      fill="#ffffff"
-                      pointerEvents="none"
-                      transform={`rotate(${rotate - rotation}, ${seg.labelX}, ${seg.labelY})`}
-                      style={{ userSelect: "none" }}
-                    >
-                      {seg.node.label}
-                    </text>
-                  )}
-                </g>
+                );
+              })}
+            </g>
+
+            {/* Labels in world space — single flat transform per label avoids
+                nested-transform misalignment when html-to-image serializes to canvas */}
+            {segments.map((seg) => {
+              const arcSpan = seg.endAngle - seg.startAngle;
+              const midR = (RINGS[seg.ring].inner + RINGS[seg.ring].outer) / 2;
+              const arcLength = midR * ((arcSpan * Math.PI) / 180);
+              const maxFontSize =
+                seg.ring === 1 ? 14 : seg.ring === 2 ? 12 : 10;
+              const fitFontSize =
+                (arcLength * 0.8) / (seg.node.label.length * 0.63);
+              const fontSize = Math.min(maxFontSize, fitFontSize);
+              if (fontSize < 5) return null;
+
+              // Rotate (labelX, labelY) around (CX, CY) by `rotation` degrees
+              const θ = toRad(rotation);
+              const dx = seg.labelX - CX;
+              const dy = seg.labelY - CY;
+              const wx = n3(CX + dx * Math.cos(θ) - dy * Math.sin(θ));
+              const wy = n3(CY + dx * Math.sin(θ) + dy * Math.cos(θ));
+
+              // Tangent text angle in world space
+              const labelAngleInWorld = seg.labelAngle + rotation;
+              const rawRot = labelAngleInWorld + 180;
+              const textAngle =
+                rawRot > 90 && rawRot < 270 ? rawRot + 180 : rawRot;
+
+              return (
+                <text
+                  key={`lbl-${seg.node.id}`}
+                  x={wx}
+                  y={wy}
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  fontSize={n3(fontSize)}
+                  fontFamily="Montserrat, sans-serif"
+                  fontWeight="700"
+                  fill="#ffffff"
+                  stroke="rgba(0,0,0,0.18)"
+                  strokeWidth={0.6}
+                  paintOrder="stroke"
+                  pointerEvents="none"
+                  transform={`rotate(${n3(textAngle)}, ${wx}, ${wy})`}
+                  style={{ userSelect: "none" }}
+                >
+                  {seg.node.label}
+                </text>
               );
             })}
-          </g>
-        </svg>
+          </svg>
+        </div>
+        {/* end flavor-wheel-clip */}
 
         {selected.size > 0 && (
-          <div className="flex flex-col items-center gap-4 w-full max-w-lg px-4">
+          <div className="flex flex-col items-center gap-3 sm:gap-4 w-full px-1 sm:px-2">
             {/* Selected flavor tags */}
-            <div className="flex flex-wrap gap-2 justify-center">
+            <div className="flex flex-wrap gap-1.5 sm:gap-2 justify-center">
               {Array.from(selected).map((id) => {
                 const label = findLabel(flavorWheelData, id);
                 return (
@@ -719,13 +737,14 @@ export default function FlavorWheel() {
                         return next;
                       })
                     }
-                    className="flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium"
+                    className="flex items-center gap-1.5 px-3 py-1.5 sm:py-1 rounded-full text-xs sm:text-sm font-medium"
                     style={{
                       backgroundColor: "#f0e8df",
                       color: "#1a0a00",
                       border: "1px solid #d4b896",
                       fontFamily: "Montserrat, sans-serif",
                       cursor: "pointer",
+                      minHeight: 36,
                     }}
                     onMouseEnter={(e) =>
                       (e.currentTarget.style.backgroundColor = "#e8d4c0")
@@ -734,7 +753,7 @@ export default function FlavorWheel() {
                       (e.currentTarget.style.backgroundColor = "#f0e8df")
                     }
                   >
-                    {label}
+                    {label && FLAVOR_NAMES_ES[id] ? FLAVOR_NAMES_ES[id] : label}
                     <span style={{ fontSize: 12, opacity: 0.5, lineHeight: 1 }}>
                       ✕
                     </span>
@@ -746,13 +765,13 @@ export default function FlavorWheel() {
             {/* Score + description panel */}
             {score !== null && (
               <div
-                className="w-full rounded-2xl p-5"
-                style={{ background: "#faf6f2", border: "1px solid #e8d8c8" }}
+                className="w-full rounded-2xl p-4 sm:p-5"
+                style={{ background: "#ffffff", border: "1px solid #e8d8c8" }}
               >
-                <div className="flex items-baseline gap-2 mb-3">
+                <div className="flex items-baseline gap-2 mb-2 sm:mb-3">
                   <span
                     style={{
-                      fontSize: 48,
+                      fontSize: "clamp(36px, 10vw, 48px)",
                       fontWeight: 700,
                       lineHeight: 1,
                       color: scoreColor(score),
@@ -763,7 +782,7 @@ export default function FlavorWheel() {
                   </span>
                   <span
                     style={{
-                      fontSize: 16,
+                      fontSize: "clamp(13px, 3.5vw, 16px)",
                       color: "#b09070",
                       fontFamily: "Montserrat, sans-serif",
                     }}
@@ -772,11 +791,11 @@ export default function FlavorWheel() {
                   </span>
                   <span
                     style={{
-                      fontSize: 14,
+                      fontSize: "clamp(12px, 3vw, 14px)",
                       fontWeight: 600,
                       color: scoreColor(score),
                       fontFamily: "Montserrat, sans-serif",
-                      marginLeft: 6,
+                      marginLeft: 4,
                     }}
                   >
                     {scoreLabel(score)}
@@ -785,8 +804,8 @@ export default function FlavorWheel() {
                 <p
                   style={{
                     margin: 0,
-                    fontSize: 14,
-                    lineHeight: 1.65,
+                    fontSize: "clamp(13px, 3.5vw, 14px)",
+                    lineHeight: 1.7,
                     color: "#4a3728",
                     fontFamily: "Montserrat, sans-serif",
                   }}
@@ -799,8 +818,8 @@ export default function FlavorWheel() {
         )}
 
         <span
-          className="text-center"
-          style={{ fontSize: 12, color: "#6b6b6b" }}
+          className="text-center px-4"
+          style={{ fontSize: "clamp(10px, 2.5vw, 12px)", color: "#9b8c80" }}
         >
           (c) 2026 Grain & Grains. Todos los derechos reservados. Inspirada en
           la SCA.
@@ -901,6 +920,12 @@ function scoreColor(s: number): string {
   return "#C62828";
 }
 
+function joinList(items: string[]): string {
+  if (items.length === 0) return "";
+  if (items.length === 1) return items[0];
+  return items.slice(0, -1).join(", ") + " y " + items[items.length - 1];
+}
+
 // Flavor names wrapped in [[…]] so renderDescription can highlight them.
 function buildDescription(
   selected: Set<string>,
@@ -913,13 +938,118 @@ function buildDescription(
     .map((id) => ({ id, s: LEAF_SCORES[id] ?? 0 }))
     .sort((a, b) => b.s - a.s);
 
-  const top3 = sorted
-    .slice(0, 3)
-    .filter((f) => f.s > 0)
+  const positives = sorted.filter((f) => f.s > 0);
+  const neutrals = sorted.filter((f) => f.s === 0);
+  const negatives = sorted.filter((f) => f.s < 0);
+
+  // Group positive flavors by sensory family for stage-based description
+  const AROMATIC_IDS = new Set([
+    "jasmine",
+    "black-tea-flavor",
+    "rose",
+    "chamomile",
+  ]);
+  const FRUITY_IDS = new Set([
+    "blackberry",
+    "raspberry",
+    "blueberry",
+    "strawberry",
+    "grape",
+    "raisin",
+    "prune",
+    "coconut",
+    "cherry",
+    "pomegranate",
+    "pineapple",
+    "mango",
+    "papaya",
+    "passion-fruit",
+    "peach",
+    "pear",
+    "apple",
+    "apricot",
+    "grapefruit",
+    "orange",
+    "lemon",
+    "lime",
+  ]);
+  const ACID_IDS = new Set([
+    "sour",
+    "fermented",
+    "winey",
+    "malic",
+    "citric",
+    "phosphoric",
+    "lactic",
+  ]);
+  const SWEET_IDS = new Set([
+    "vanilla",
+    "vanillin",
+    "brown-sugar",
+    "molasses",
+    "maple-syrup",
+    "caramelized",
+    "honey",
+    "dark-chocolate",
+    "milk-chocolate",
+    "chocolate",
+  ]);
+  const ROAST_IDS = new Set([
+    "cereal",
+    "malt",
+    "grain",
+    "burnt",
+    "smoky",
+    "ashy",
+    "brown-roast",
+    "dark-roast",
+  ]);
+  const SPICE_NUT_IDS = new Set([
+    "walnut",
+    "hazelnut",
+    "almond",
+    "peanut",
+    "anise",
+    "pepper",
+    "clove",
+    "cinnamon",
+    "nutmeg",
+  ]);
+
+  const aromatic = positives
+    .filter((f) => AROMATIC_IDS.has(f.id))
     .map((f) => tag(FLAVOR_NAMES_ES[f.id] ?? f.id));
-  const negatives = sorted
-    .filter((f) => f.s < -1.5)
+  const fruity = positives
+    .filter((f) => FRUITY_IDS.has(f.id))
     .map((f) => tag(FLAVOR_NAMES_ES[f.id] ?? f.id));
+  const acidic = positives
+    .filter((f) => ACID_IDS.has(f.id))
+    .map((f) => tag(FLAVOR_NAMES_ES[f.id] ?? f.id));
+  const sweet = positives
+    .filter((f) => SWEET_IDS.has(f.id))
+    .map((f) => tag(FLAVOR_NAMES_ES[f.id] ?? f.id));
+  const roasty = positives
+    .filter((f) => ROAST_IDS.has(f.id))
+    .map((f) => tag(FLAVOR_NAMES_ES[f.id] ?? f.id));
+  const spiceNut = positives
+    .filter((f) => SPICE_NUT_IDS.has(f.id))
+    .map((f) => tag(FLAVOR_NAMES_ES[f.id] ?? f.id));
+  // Any positive not caught by the groups above
+  const other = positives
+    .filter(
+      (f) =>
+        ![
+          ...AROMATIC_IDS,
+          ...FRUITY_IDS,
+          ...ACID_IDS,
+          ...SWEET_IDS,
+          ...ROAST_IDS,
+          ...SPICE_NUT_IDS,
+        ].includes(f.id),
+    )
+    .map((f) => tag(FLAVOR_NAMES_ES[f.id] ?? f.id));
+  const neutralLabels = neutrals.map((f) => tag(FLAVOR_NAMES_ES[f.id] ?? f.id));
+  const negLabels = negatives.map((f) => tag(FLAVOR_NAMES_ES[f.id] ?? f.id));
 
   const cats = new Set<string>();
   for (const id of selected) {
@@ -927,58 +1057,144 @@ function buildDescription(
     if (cat) cats.add(cat);
   }
 
-  let intro: string;
-  if (score >= 90)
-    intro = "Una experiencia sensorial excepcional que se graba en la memoria";
-  else if (score >= 85)
-    intro =
-      "Un café de perfil extraordinario que cautiva desde el primer sorbo";
-  else if (score >= 80)
-    intro = "Una taza armoniosa y elegante, equilibrada en cada dimensión";
-  else if (score >= 75)
-    intro =
-      "Un café con personalidad bien definida que invita a explorarlo con calma";
-  else if (score >= 70)
-    intro = "Un café honesto y directo, fiel a su naturaleza";
-  else
-    intro =
-      "Un café que, pese a su potencial, carga con notas que opacan su expresión";
+  const parts: string[] = [];
 
-  let verb: string;
-  if (score >= 85) verb = "despliega en taza un bouquet de";
-  else if (score >= 75) verb = "donde el paladar descubre notas de";
-  else verb = "en el que se perciben";
-
-  let desc = intro;
-
-  if (top3.length > 0) {
-    const list =
-      top3.length === 1
-        ? top3[0]
-        : top3.slice(0, -1).join(", ") + " y " + top3[top3.length - 1];
-    desc += ` — ${verb} ${list}`;
-  }
-  desc += ".";
-
-  if (negatives.length > 0) {
-    const negList = negatives.slice(0, 2).join(" y ");
-    desc += ` Sin embargo, se perciben rastros de ${negList} que merecen atención.`;
+  // ── Fragrance / aroma stage ──
+  if (aromatic.length > 0 && fruity.length > 0) {
+    parts.push(
+      `En fragancia, la muestra abre con una expresión aromática de ${joinList(aromatic)}, entrelazada con notas frutales de ${joinList(fruity)}.`,
+    );
+  } else if (aromatic.length > 0) {
+    parts.push(
+      `En fragancia, predomina una nota floral de ${joinList(aromatic)} que perfuma el primer contacto con la taza.`,
+    );
+  } else if (fruity.length > 0) {
+    parts.push(
+      `En fragancia, la muestra expresa notas frutales de ${joinList(fruity)} con buena intensidad.`,
+    );
   }
 
-  if (cats.size >= 4 && score >= 80) {
-    desc +=
-      " Su arquitectura aromática de gran complejidad revela nuevas capas a medida que la taza enfría.";
-  } else if (cats.size >= 3 && score >= 75) {
-    desc +=
-      " La diversidad de sus notas hace de cada sorbo un viaje sensorial distinto.";
-  } else if (cats.size === 1 && selected.size >= 2) {
-    desc +=
-      " Su perfil enfocado lo hace inmediatamente reconocible: limpio, directo y honesto.";
-  } else if (selected.size === 1) {
-    desc += " Una expresión concentrada que no necesita adornos.";
+  // ── Palate / flavor stage ──
+  const palateItems = [
+    ...(aromatic.length === 0 && fruity.length > 0 ? [] : []), // already covered above
+    ...sweet,
+    ...roasty,
+    ...spiceNut,
+    ...other,
+  ].filter(Boolean);
+
+  const palateAllItems = [
+    ...(aromatic.length === 0 ? fruity : []),
+    ...sweet,
+    ...roasty,
+    ...spiceNut,
+    ...other,
+  ].filter(Boolean);
+
+  if (parts.length === 0 && palateAllItems.length > 0) {
+    // No aromatic/fruity stage yet — start here
+    parts.push(
+      `En taza, el perfil de sabor despliega ${joinList(palateAllItems)}.`,
+    );
+  } else if (palateItems.length > 0) {
+    if (sweet.length > 0 && roasty.length > 0) {
+      parts.push(
+        `En el paladar, la dulzura de ${joinList(sweet)} dialoga con un fondo tostado de ${joinList(roasty)}${spiceNut.length > 0 ? `, con matices especiados de ${joinList(spiceNut)}` : ""}.`,
+      );
+    } else if (sweet.length > 0) {
+      parts.push(
+        `En boca, el cuerpo medio se apoya en una base de ${joinList(sweet)}${spiceNut.length > 0 ? ` y especias de ${joinList(spiceNut)}` : ""}.`,
+      );
+    } else if (roasty.length > 0) {
+      parts.push(
+        `En taza, el perfil tostado de ${joinList(roasty)} domina el paladar${spiceNut.length > 0 ? `, acompañado de ${joinList(spiceNut)}` : ""}.`,
+      );
+    } else if (spiceNut.length > 0 || other.length > 0) {
+      const combined = [...spiceNut, ...other];
+      parts.push(`En boca se perciben notas de ${joinList(combined)}.`);
+    }
   }
 
-  return desc;
+  // ── Acidity stage ──
+  if (acidic.length > 0) {
+    if (score >= 85) {
+      parts.push(
+        `La acidez es viva y bien estructurada, con notas de ${joinList(acidic)} que elevan la complejidad de la taza.`,
+      );
+    } else if (score >= 75) {
+      parts.push(
+        `La acidez, de carácter ${joinList(acidic)}, aporta frescura y equilibrio sin resultar invasiva.`,
+      );
+    } else {
+      parts.push(
+        `Se detecta acidez de tipo ${joinList(acidic)}, aunque requiere mayor integración con el resto del perfil.`,
+      );
+    }
+  }
+
+  // ── Neutral / textural notes ──
+  if (neutralLabels.length > 0) {
+    parts.push(
+      `El cuerpo exhibe notas de ${joinList(neutralLabels)} que redondean la textura en la boca.`,
+    );
+  }
+
+  // ── Finish / retrogusto ──
+  if (score >= 88) {
+    parts.push(
+      "El retrogusto es largo y persistente, con un final limpio que invita al siguiente sorbo.",
+    );
+  } else if (score >= 80) {
+    parts.push(
+      "El final deja una sensación agradable y bien definida en el paladar.",
+    );
+  } else if (score >= 72) {
+    parts.push("El retrogusto es corto pero reconocible.");
+  }
+
+  // ── Defects ──
+  if (negLabels.length > 0) {
+    if (negLabels.length === 1) {
+      parts.push(
+        `Se detecta un defecto de ${negLabels[0]} que compromete la limpieza de la taza y debe tenerse en cuenta en la evaluación final.`,
+      );
+    } else {
+      parts.push(
+        `Se registran defectos de ${joinList(negLabels)}, los cuales reducen la puntuación de limpieza e impactan la experiencia global.`,
+      );
+    }
+  }
+
+  // ── Overall / puntuación SCA ──
+  if (parts.length === 0) {
+    parts.push(
+      "Perfil en construcción — selecciona atributos para generar la descripción de cata.",
+    );
+  } else {
+    if (score >= 90) {
+      parts.push(
+        `Puntuación SCA estimada: ${score.toFixed(1)} — taza de specialty de clase superior, expresión limpia y complejidad que supera las expectativas de protocolo.`,
+      );
+    } else if (score >= 85) {
+      parts.push(
+        `Puntuación SCA estimada: ${score.toFixed(1)} — café specialty de alta calidad, con atributos que exceden los estándares mínimos de protocolo.`,
+      );
+    } else if (score >= 80) {
+      parts.push(
+        `Puntuación SCA estimada: ${score.toFixed(1)} — califica como specialty según el protocolo SCA, con balance y uniformidad satisfactorios.`,
+      );
+    } else if (score >= 75) {
+      parts.push(
+        `Puntuación SCA estimada: ${score.toFixed(1)} — por debajo del umbral specialty (80 pts), con potencial identificable que requiere trabajo en el proceso.`,
+      );
+    } else {
+      parts.push(
+        `Puntuación SCA estimada: ${score.toFixed(1)} — perfil con defectos o desequilibrios que no alcanzan el corte de specialty.`,
+      );
+    }
+  }
+
+  return parts.join(" ");
 }
 
 function renderDescription(text: string) {

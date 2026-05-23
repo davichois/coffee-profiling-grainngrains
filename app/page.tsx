@@ -25,7 +25,7 @@ export const metadata: Metadata = {
 export default function Home() {
   return (
     <main
-      className="flex min-h-screen flex-col items-center justify-center pb-32"
+      className="min-h-screen flex flex-col items-center py-6 sm:py-8 md:py-12"
       style={{ background: "#faf6f2" }}
     >
       <FlavorWheel />
