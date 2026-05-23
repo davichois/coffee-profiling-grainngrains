@@ -308,12 +308,19 @@ function buildDynamicSegments(
 // ─── export capture helpers (stable — no component state dependency) ─────────
 
 function captureFilter(node: Node): boolean {
+  // Drop any <link> pointing to a cross-origin URL (browser extension stylesheets, etc.)
   if (
     node instanceof HTMLLinkElement &&
-    node.rel === "stylesheet" &&
     node.href &&
     !node.href.startsWith(window.location.origin) &&
     !node.href.startsWith("data:")
+  ) {
+    return false;
+  }
+  // Drop <style> elements that contain external @import urls (Google Translate injection)
+  if (
+    node instanceof HTMLStyleElement &&
+    /\@import\s+url\(['"]?https?:\/\//i.test(node.textContent ?? "")
   ) {
     return false;
   }
@@ -504,16 +511,16 @@ export default function FlavorWheel() {
   segments.forEach((seg) => nodeMap.current.set(seg.node.id, seg.node));
 
   return (
-    <div className="flex items-center justify-center gap-4 sm:gap-6 flex-col w-full max-w-2xl mx-auto ">
+    <div className="flex items-center justify-center gap-4 sm:gap-6 flex-col w-full max-w-6xl lg:max-w-2xl mx-auto ">
       {/* Export buttons — excluded from captured image */}
       {/* Logo */}
 
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between w-full px-3 sm:px-4">
-        <div className="hidden justify-center sm:justify-start md:flex">
+      <div className="flex sm:flex-row sm:items-start sm:justify-between w-full px-3 sm:px-4">
+        <div className="hidden justify-center sm:justify-start lg:flex">
           <GrainngrainsLogo tagline="Rueda de sabores" />
         </div>
 
-        <div className="grid grid-cols-1 xs:grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:justify-end w-full sm:w-auto">
+        <div className="flex sm:flex-row sm:flex-wrap sm:justify-end sm:w-auto">
           <button
             onClick={exportPng}
             className="flex w-full sm:w-auto items-center justify-center gap-2 px-5 py-3 sm:py-2 rounded-full text-sm font-semibold transition-colors duration-200"
@@ -592,14 +599,11 @@ export default function FlavorWheel() {
       <div
         ref={captureRef}
         className="flex items-center justify-center gap-4 sm:gap-6 flex-col w-full"
-        style={{ background: "#faf6f2", padding: "8px 0 16px" }}
+        style={{ background: "#faf6f2" }}
       >
-        <div className="flex justify-center sm:justify-start md:hidden">
-          <GrainngrainsLogo tagline="Rueda de sabores" />
-        </div>
-        {/* On mobile: clip container so the wheel is bottom-docked and zoomed in.
-            On sm+: wrapper is transparent (overflow visible, auto size). */}
-        <div className="flavor-wheel-clip sm:contents">
+        {/* Below lg: clip container so the wheel is bottom-docked and zoomed in.
+            At lg+: wrapper is display:contents (overflow visible, auto size). */}
+        <div className="flavor-wheel-clip lg:contents">
           <svg
             width={SVG_SIZE}
             height={SVG_SIZE}
@@ -609,6 +613,7 @@ export default function FlavorWheel() {
             onPointerUp={onPointerUp}
             onPointerCancel={onPointerUp}
             style={{
+              display: "block",
               maxWidth: "100%",
               height: "auto",
               cursor: isDragging ? "grabbing" : "grab",
