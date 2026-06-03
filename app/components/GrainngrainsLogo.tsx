@@ -9,9 +9,15 @@ const caveat = Caveat({
   weight: ["400", "700"],
 });
 
-export function GrainngrainsLogo({ tagline }: { tagline: string }) {
+export function GrainngrainsLogo({
+  tagline,
+  href = "/",
+}: {
+  tagline: string;
+  href?: string;
+}) {
   return (
-    <Link href="/" className="shrink-0 flex flex-col items-start leading-none">
+    <Link href={href} className="shrink-0 flex flex-col items-start leading-none">
       <Image
         src={grainngrains}
         alt="logo"

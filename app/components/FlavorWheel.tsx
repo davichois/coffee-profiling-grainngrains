@@ -5,6 +5,12 @@ import { flavorWheelData, FlavorNode } from "../data/flavorWheel";
 import { toPng } from "html-to-image";
 import jsPDF from "jspdf";
 import { GrainngrainsLogo } from "./GrainngrainsLogo";
+import { WheelNav } from "./WheelNav";
+import { LanguageSwitcher } from "./LanguageSwitcher";
+import type { Locale } from "../i18n/config";
+import { UI } from "../i18n/ui";
+import { labelFor } from "../i18n/labels";
+import { buildDescription, findMainCat } from "../i18n/describe";
 
 const SVG_SIZE = 900;
 const CX = SVG_SIZE / 2;
@@ -24,9 +30,10 @@ const n3 = (v: number) => Math.round(v * 1000) / 1000;
 
 // ─── scoring weights per leaf node ───────────────────────────────────────────
 const LEAF_SCORES: Record<string, number> = {
-  "black-tea-flavor": 4.5,
+  "black-tea-flavor": 4,
   rose: 4,
   jasmine: 4.5,
+  chamomile: 4.5,
   blackberry: 3,
   raspberry: 3,
   blueberry: 3.5,
@@ -50,6 +57,7 @@ const LEAF_SCORES: Record<string, number> = {
   "maple-syrup": 2,
   molasses: 1.5,
   "vanilla-flavor": 3,
+  vanillin: 2.5,
   chocolate: 2.5,
   "dark-chocolate": 3.5,
   hazelnut: 2,
@@ -68,6 +76,8 @@ const LEAF_SCORES: Record<string, number> = {
   acrid: -3.5,
   "citric-acid": 2.5,
   "malic-acid": 2.5,
+  "phosphoric-acid": 2.0,
+  "lactic-acid": 2.0,
   "sour-aromatics": 1,
   "acetic-acid": -1.5,
   "butyric-acid": -4,
@@ -100,9 +110,10 @@ const LEAF_SCORES: Record<string, number> = {
 };
 
 const FLAVOR_NAMES_ES: Record<string, string> = {
-  "black-tea-flavor": "manzanilla",
+  "black-tea-flavor": "té negro",
   rose: "rosa",
   jasmine: "jazmín",
+  chamomile: "manzanilla",
   blackberry: "mora",
   raspberry: "frambuesa",
   blueberry: "mora azul",
@@ -126,6 +137,7 @@ const FLAVOR_NAMES_ES: Record<string, string> = {
   "maple-syrup": "jarabe de arce",
   molasses: "melaza",
   "vanilla-flavor": "vainilla",
+  vanillin: "vainillina",
   chocolate: "chocolate",
   "dark-chocolate": "chocolate amargo",
   hazelnut: "avellana",
@@ -144,6 +156,8 @@ const FLAVOR_NAMES_ES: Record<string, string> = {
   acrid: "acre",
   "citric-acid": "acidez cítrica",
   "malic-acid": "acidez málica",
+  "phosphoric-acid": "ácido fosfórico",
+  "lactic-acid": "ácido láctico",
   "sour-aromatics": "acidez aromática",
   "acetic-acid": "ácido acético",
   "butyric-acid": "ácido butírico",
@@ -354,12 +368,37 @@ function shortestDelta(a: number, b: number): number {
   return d;
 }
 
+// ─── component config ────────────────────────────────────────────────────────
+
+export interface WheelConfig {
+  data?: typeof flavorWheelData;
+  leafScores?: Record<string, number>;
+  flavorNamesEs?: Record<string, string>;
+  initialOpenIds?: Set<string>;
+  exportFilename?: string;
+  active?: "sca" | "peru";
+  locale?: Locale;
+}
+
+const SCA_DEFAULT_OPEN = new Set(["fruity", "berry", "roasted", "sweet"]);
+
 // ─── component ───────────────────────────────────────────────────────────────
 
-export default function FlavorWheel() {
-  const [openIds, setOpenIds] = useState<Set<string>>(
-    new Set(["fruity", "berry", "roasted", "sweet"]),
-  );
+export default function FlavorWheel({ config }: { config?: WheelConfig } = {}) {
+  const wheelData = config?.data ?? flavorWheelData;
+  const scores = config?.leafScores ?? LEAF_SCORES;
+  const namesEs = config?.flavorNamesEs ?? FLAVOR_NAMES_ES;
+  const initialOpen = config?.initialOpenIds ?? SCA_DEFAULT_OPEN;
+  const exportFilename = config?.exportFilename ?? "perfil-cafe.png";
+  const activeWheel = config?.active ?? "sca";
+  const locale = config?.locale ?? "es";
+  const ui = UI[locale];
+
+  // Localized flavor name for a leaf id (falls back to Spanish / proper noun).
+  const nameFor = (id: string) =>
+    labelFor(id, namesEs[id] ?? findLabel(wheelData, id), locale);
+
+  const [openIds, setOpenIds] = useState<Set<string>>(initialOpen);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [hovered, setHovered] = useState<string | null>(null);
   const [rotation, setRotation] = useState(0);
@@ -369,23 +408,28 @@ export default function FlavorWheel() {
   const animFrame = useRef<number | null>(null);
   const nodeMap = useRef<Map<string, FlavorNode>>(new Map());
   const captureRef = useRef<HTMLDivElement>(null);
+  const outerRef = useRef<HTMLDivElement>(null);
 
   const exportPng = useCallback(async () => {
     if (!captureRef.current) return;
+    outerRef.current?.classList.add("exporting-outer");
     captureRef.current.classList.add("exporting");
     const dataUrl = await toPng(captureRef.current, CAPTURE_OPTIONS);
     captureRef.current.classList.remove("exporting");
+    outerRef.current?.classList.remove("exporting-outer");
     const link = document.createElement("a");
-    link.download = "perfil-cafe.png";
+    link.download = exportFilename;
     link.href = dataUrl;
     link.click();
   }, []);
 
   const exportPdf = useCallback(async () => {
     if (!captureRef.current) return;
+    outerRef.current?.classList.add("exporting-outer");
     captureRef.current.classList.add("exporting");
     const dataUrl = await toPng(captureRef.current, CAPTURE_OPTIONS);
     captureRef.current.classList.remove("exporting");
+    outerRef.current?.classList.remove("exporting-outer");
     const img = new Image();
     img.src = dataUrl;
     await new Promise<void>((resolve) => {
@@ -397,7 +441,7 @@ export default function FlavorWheel() {
       format: [img.width, img.height],
     });
     pdf.addImage(dataUrl, "PNG", 0, 0, img.width, img.height);
-    pdf.save("perfil-cafe.pdf");
+    pdf.save(exportFilename.replace(".png", ".pdf"));
   }, []);
 
   function getSvgCoords(e: React.PointerEvent<SVGSVGElement>) {
@@ -499,10 +543,19 @@ export default function FlavorWheel() {
     [toggleNode],
   );
 
-  const segments = buildDynamicSegments(flavorWheelData, openIds);
-  const score = computeScore(selected, flavorWheelData);
+  const segments = buildDynamicSegments(wheelData, openIds);
+  const score = computeScore(selected, wheelData, scores);
   const description =
-    score !== null ? buildDescription(selected, score, flavorWheelData) : "";
+    score !== null
+      ? buildDescription(
+          selected,
+          score,
+          wheelData,
+          scores,
+          locale,
+          (id) => `[[${nameFor(id)}]]`,
+        )
+      : "";
 
   // Keep nodeMap in sync so onPointerUp can resolve taps
   // eslint-disable-next-line react-hooks/refs
@@ -510,327 +563,388 @@ export default function FlavorWheel() {
   // eslint-disable-next-line react-hooks/refs
   segments.forEach((seg) => nodeMap.current.set(seg.node.id, seg.node));
 
-  return (
-    <div className="flex items-center justify-center gap-4 sm:gap-6 flex-col w-full max-w-6xl lg:max-w-2xl mx-auto ">
-      {/* Export buttons — excluded from captured image */}
-      {/* Logo */}
+  const svgEl = (
+    <svg
+      width={SVG_SIZE}
+      height={SVG_SIZE}
+      viewBox={`0 0 ${SVG_SIZE} ${SVG_SIZE}`}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
+      style={{
+        display: "block",
+        maxWidth: "100%",
+        height: "auto",
+        cursor: isDragging ? "grabbing" : "grab",
+        touchAction: "none",
+        userSelect: "none",
+      }}
+    >
+      <defs>
+        <clipPath id="center-logo-clip">
+          <circle cx={CX} cy={CY} r={CENTER_R - 2} />
+        </clipPath>
+      </defs>
+      <g className="center-logo-group">
+        <circle cx={CX} cy={CY} r={CENTER_R} fill="#faf6f2" />
+        <image
+          href="/grainngrains.svg"
+          x={CX - (CENTER_R - 14)}
+          y={CY - (CENTER_R - 14)}
+          width={(CENTER_R - 14) * 2}
+          height={(CENTER_R - 14) * 2}
+          preserveAspectRatio="xMidYMid meet"
+          clipPath="url(#center-logo-clip)"
+        />
+      </g>
 
-      <div className="flex sm:flex-row sm:items-start sm:justify-between w-full px-3 sm:px-4">
-        <div className="hidden justify-center sm:justify-start lg:flex">
-          <GrainngrainsLogo tagline="Rueda de sabores" />
+      <g transform={`rotate(${rotation}, ${CX}, ${CY})`}>
+        {segments.map((seg) => {
+          const isOpen = openIds.has(seg.node.id);
+          const isSelected = selected.has(seg.node.id);
+          const isHovered = hovered === seg.node.id;
+          const baseColor = seg.node.color;
+          const fillColor = isSelected
+            ? "#E8914A"
+            : isHovered
+              ? lighten(baseColor)
+              : isOpen
+                ? darken(baseColor)
+                : baseColor;
+          return (
+            <path
+              key={seg.node.id}
+              d={seg.path}
+              fill={fillColor}
+              stroke="#ffffff"
+              strokeWidth={1}
+              data-node-id={seg.node.id}
+              style={{
+                cursor: isDragging ? "grabbing" : "pointer",
+                transition: "fill 0.15s",
+              }}
+              onMouseEnter={() => !isDragging && setHovered(seg.node.id)}
+              onMouseLeave={() => setHovered(null)}
+            />
+          );
+        })}
+      </g>
+
+      {segments.map((seg) => {
+        const arcSpan = seg.endAngle - seg.startAngle;
+        const midR = (RINGS[seg.ring].inner + RINGS[seg.ring].outer) / 2;
+        const arcLength = midR * ((arcSpan * Math.PI) / 180);
+        const ringDepth = RINGS[seg.ring].outer - RINGS[seg.ring].inner;
+        const maxFontSize = seg.ring === 1 ? 13 : seg.ring === 2 ? 11 : 9;
+
+        const label = labelFor(seg.node.id, seg.node.label, locale);
+
+        // ── Tangential fit (text runs along the arc) ──────────────────────
+        // 0.58 leaves padding on both sides so the label sits centered in the
+        // wedge instead of running up against the white dividers.
+        const safeTangential = arcLength * 0.58;
+        const fitTangential = safeTangential / (label.length * 0.6);
+        const fsTangential = Math.min(maxFontSize, fitTangential);
+
+        // ── Radial fit (text runs along the radius) ───────────────────────
+        // Only considered for rings 2 and 3 when tangential is too small.
+        const safeRadial = ringDepth * 0.58;
+        const fitRadial = safeRadial / (label.length * 0.6);
+        const fsRadial = Math.min(maxFontSize, fitRadial);
+
+        // When a second-ring option is open (expanded), keep its label
+        // tangential ("echado") instead of radial ("parado") so it fits.
+        const isOpenSecondScale = seg.ring === 2 && openIds.has(seg.node.id);
+        const useRadial =
+          seg.ring >= 2 &&
+          fsTangential < 7 &&
+          fsRadial >= fsTangential &&
+          !isOpenSecondScale;
+
+        const fontSize = useRadial ? fsRadial : fsTangential;
+        if (fontSize < 5) return null;
+
+        const safeWidth = useRadial ? safeRadial : safeTangential;
+        const estimatedWidth = label.length * 0.6 * fontSize;
+        const textLen = n3(Math.min(estimatedWidth, safeWidth));
+
+        // ── World-space position ──────────────────────────────────────────
+        const θ = toRad(rotation);
+        const dx = seg.labelX - CX;
+        const dy = seg.labelY - CY;
+        const wx = n3(CX + dx * Math.cos(θ) - dy * Math.sin(θ));
+        const wy = n3(CY + dx * Math.sin(θ) + dy * Math.cos(θ));
+
+        // ── Text rotation ─────────────────────────────────────────────────
+        const labelAngleInWorld = seg.labelAngle + rotation;
+        let textAngle: number;
+        if (useRadial) {
+          // Radial: text runs from center outward along the radius.
+          // Normalize to [0, 360) then flip left-half labels so they stay readable.
+          const norm = ((labelAngleInWorld % 360) + 360) % 360;
+          textAngle = norm > 90 && norm < 270 ? norm + 180 : norm;
+        } else {
+          // Tangential: text runs parallel to the arc circumference.
+          const rawRot = labelAngleInWorld + 180;
+          textAngle = rawRot > 90 && rawRot < 270 ? rawRot + 180 : rawRot;
+        }
+
+        return (
+          <text
+            key={`lbl-${seg.node.id}`}
+            x={wx}
+            y={wy}
+            textAnchor="middle"
+            dominantBaseline="middle"
+            fontSize={n3(fontSize)}
+            fontFamily="Montserrat, sans-serif"
+            fontWeight="700"
+            fill="#ffffff"
+            stroke="rgba(0,0,0,0.18)"
+            strokeWidth={0.6}
+            paintOrder="stroke"
+            pointerEvents="none"
+            textLength={textLen}
+            lengthAdjust="spacingAndGlyphs"
+            transform={`rotate(${n3(textAngle)}, ${wx}, ${wy})`}
+            style={{ userSelect: "none" }}
+          >
+            {label}
+          </text>
+        );
+      })}
+    </svg>
+  );
+
+  return (
+    <div
+      ref={outerRef}
+      className="flex flex-col w-full md:max-w-7xl md:mx-auto"
+      style={{ fontFamily: "Montserrat, sans-serif" }}
+    >
+      {/* ── Header — excluded from export ── */}
+      <div className="shrink-0 flex flex-wrap items-center justify-between gap-3 px-4 sm:px-6 pt-5 pb-4">
+        <GrainngrainsLogo tagline={ui.tagline} href={`/${locale}`} />
+
+        {/* Wheel options — full width below on mobile, inline on desktop */}
+        <div className="order-last w-full flex justify-center sm:order-0 sm:w-auto">
+          <WheelNav active={activeWheel} locale={locale} />
         </div>
 
-        <div className="flex sm:flex-row sm:flex-wrap sm:justify-end sm:w-auto">
-          <button
-            onClick={exportPng}
-            className="flex w-full sm:w-auto items-center justify-center gap-2 px-5 py-3 sm:py-2 rounded-full text-sm font-semibold transition-colors duration-200"
-            style={{
-              backgroundColor: "#1a0a00",
-              color: "#faf6f2",
-              fontFamily: "Montserrat, sans-serif",
-              cursor: "pointer",
-              border: "none",
-              minHeight: 44,
-            }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.backgroundColor = "#212121")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.backgroundColor = "#1a0a00")
-            }
+        <div className="flex items-center gap-2">
+        <button
+          onClick={exportPng}
+          title={ui.exportTitle}
+          className="flex items-center gap-2 text-sm font-semibold transition-all duration-200"
+          style={{
+            backgroundColor: "transparent",
+            color: "#116e78",
+            border: "1.5px solid #279ba8",
+            borderRadius: 999,
+            padding: "8px 18px",
+            cursor: "pointer",
+            fontFamily: "Montserrat, sans-serif",
+            letterSpacing: "0.01em",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = "#116e78";
+            e.currentTarget.style.color = "#faf6f2";
+            e.currentTarget.style.borderColor = "#116e78";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = "transparent";
+            e.currentTarget.style.color = "#116e78";
+            e.currentTarget.style.borderColor = "#279ba8";
+          }}
+        >
+          <svg
+            width="13"
+            height="13"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="7 10 12 15 17 10" />
-              <line x1="12" y1="15" x2="12" y2="3" />
-            </svg>
-            Exportar PNG
-          </button>
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          <span>{ui.exportLabel}</span>
+        </button>
 
-          {/* <button
-            onClick={exportPdf}
-            className="flex w-full sm:w-auto items-center justify-center gap-2 px-5 py-3 sm:py-2 rounded-full text-sm font-semibold transition-colors duration-200"
-            style={{
-              backgroundColor: "#faf6f2",
-              color: "#080808",
-              fontFamily: "Montserrat, sans-serif",
-              cursor: "pointer",
-              border: "1.5px solid #080808",
-              minHeight: 44,
-            }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.backgroundColor = "#f4f4f4")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.backgroundColor = "#faf6f2")
-            }
-          >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-              <polyline points="14 2 14 8 20 8" />
-              <line x1="16" y1="13" x2="8" y2="13" />
-              <line x1="16" y1="17" x2="8" y2="17" />
-              <polyline points="10 9 9 9 8 9" />
-            </svg>
-            Exportar PDF
-          </button> */}
+        <LanguageSwitcher
+          current={locale}
+          basePath={activeWheel === "peru" ? "/peru" : ""}
+        />
         </div>
       </div>
 
-      {/* Capture area */}
+      {/* ── Capture area ── */}
       <div
         ref={captureRef}
-        className="flex items-center justify-center gap-4 sm:gap-6 flex-col w-full"
+        className="flex flex-col w-full"
         style={{ background: "#faf6f2" }}
       >
-        {/* Below lg: clip container so the wheel is bottom-docked and zoomed in.
-            At lg+: wrapper is display:contents (overflow visible, auto size). */}
-        <div className="flavor-wheel-clip lg:contents">
-          <svg
-            width={SVG_SIZE}
-            height={SVG_SIZE}
-            viewBox={`0 0 ${SVG_SIZE} ${SVG_SIZE}`}
-            onPointerDown={onPointerDown}
-            onPointerMove={onPointerMove}
-            onPointerUp={onPointerUp}
-            onPointerCancel={onPointerUp}
-            style={{
-              display: "block",
-              maxWidth: "100%",
-              height: "auto",
-              cursor: isDragging ? "grabbing" : "grab",
-              touchAction: "none",
-              userSelect: "none",
-            }}
-          >
-            {/* Static center — does not rotate. Hidden on mobile via CSS (center sits at clip boundary) */}
-            <defs>
-              <clipPath id="center-logo-clip">
-                <circle cx={CX} cy={CY} r={CENTER_R - 2} />
-              </clipPath>
-            </defs>
-            <g className="center-logo-group">
-              <circle cx={CX} cy={CY} r={CENTER_R} fill="#faf6f2" />
-              <image
-                href="/grainngrains.svg"
-                x={CX - (CENTER_R - 14)}
-                y={CY - (CENTER_R - 14)}
-                width={(CENTER_R - 14) * 2}
-                height={(CENTER_R - 14) * 2}
-                preserveAspectRatio="xMidYMid meet"
-                clipPath="url(#center-logo-clip)"
-              />
-            </g>
-
-            {/* Rotating group */}
-            {/* Rotating arcs — paths only, no labels */}
-            <g transform={`rotate(${rotation}, ${CX}, ${CY})`}>
-              {segments.map((seg) => {
-                const isOpen = openIds.has(seg.node.id);
-                const isSelected = selected.has(seg.node.id);
-                const isHovered = hovered === seg.node.id;
-                const baseColor = seg.node.color;
-                const fillColor = isSelected
-                  ? "#f4c6a0"
-                  : isHovered
-                    ? lighten(baseColor)
-                    : isOpen
-                      ? darken(baseColor)
-                      : baseColor;
-                return (
-                  <path
-                    key={seg.node.id}
-                    d={seg.path}
-                    fill={fillColor}
-                    stroke="#ffffff"
-                    strokeWidth={1}
-                    data-node-id={seg.node.id}
-                    style={{
-                      cursor: isDragging ? "grabbing" : "pointer",
-                      transition: "fill 0.15s",
-                    }}
-                    onMouseEnter={() => !isDragging && setHovered(seg.node.id)}
-                    onMouseLeave={() => setHovered(null)}
-                  />
-                );
-              })}
-            </g>
-
-            {/* Labels in world space — single flat transform per label avoids
-                nested-transform misalignment when html-to-image serializes to canvas */}
-            {segments.map((seg) => {
-              const arcSpan = seg.endAngle - seg.startAngle;
-              const midR = (RINGS[seg.ring].inner + RINGS[seg.ring].outer) / 2;
-              const arcLength = midR * ((arcSpan * Math.PI) / 180);
-              const maxFontSize =
-                seg.ring === 1 ? 14 : seg.ring === 2 ? 12 : 10;
-              const fitFontSize =
-                (arcLength * 0.8) / (seg.node.label.length * 0.63);
-              const fontSize = Math.min(maxFontSize, fitFontSize);
-              if (fontSize < 5) return null;
-
-              // Rotate (labelX, labelY) around (CX, CY) by `rotation` degrees
-              const θ = toRad(rotation);
-              const dx = seg.labelX - CX;
-              const dy = seg.labelY - CY;
-              const wx = n3(CX + dx * Math.cos(θ) - dy * Math.sin(θ));
-              const wy = n3(CY + dx * Math.sin(θ) + dy * Math.cos(θ));
-
-              // Tangent text angle in world space
-              const labelAngleInWorld = seg.labelAngle + rotation;
-              const rawRot = labelAngleInWorld + 180;
-              const textAngle =
-                rawRot > 90 && rawRot < 270 ? rawRot + 180 : rawRot;
-
-              return (
-                <text
-                  key={`lbl-${seg.node.id}`}
-                  x={wx}
-                  y={wy}
-                  textAnchor="middle"
-                  dominantBaseline="middle"
-                  fontSize={n3(fontSize)}
-                  fontFamily="Montserrat, sans-serif"
-                  fontWeight="700"
-                  fill="#ffffff"
-                  stroke="rgba(0,0,0,0.18)"
-                  strokeWidth={0.6}
-                  paintOrder="stroke"
-                  pointerEvents="none"
-                  transform={`rotate(${n3(textAngle)}, ${wx}, ${wy})`}
-                  style={{ userSelect: "none" }}
-                >
-                  {seg.node.label}
-                </text>
-              );
-            })}
-          </svg>
+        {/* Hidden logo — only visible in exported PNG */}
+        <div style={{ display: "none" }} aria-hidden="true">
+          <GrainngrainsLogo tagline={ui.tagline} />
         </div>
-        {/* end flavor-wheel-clip */}
 
-        {selected.size > 0 && (
-          <div className="flex flex-col items-center gap-3 sm:gap-4 w-full px-1 sm:px-2">
-            {/* Selected flavor tags */}
-            <div className="flex flex-wrap gap-1.5 sm:gap-2 justify-center">
-              {Array.from(selected).map((id) => {
-                const label = findLabel(flavorWheelData, id);
-                return (
-                  <button
-                    key={id}
-                    onClick={() =>
-                      setSelected((prev) => {
-                        const next = new Set(prev);
-                        next.delete(id);
-                        return next;
-                      })
-                    }
-                    className="flex items-center gap-1.5 px-3 py-1.5 sm:py-1 rounded-full text-xs sm:text-sm font-medium"
-                    style={{
-                      backgroundColor: "#f0e8df",
-                      color: "#1a0a00",
-                      border: "1px solid #d4b896",
-                      fontFamily: "Montserrat, sans-serif",
-                      cursor: "pointer",
-                      minHeight: 36,
-                    }}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.backgroundColor = "#e8d4c0")
-                    }
-                    onMouseLeave={(e) =>
-                      (e.currentTarget.style.backgroundColor = "#f0e8df")
-                    }
-                  >
-                    {label && FLAVOR_NAMES_ES[id] ? FLAVOR_NAMES_ES[id] : label}
-                    <span style={{ fontSize: 12, opacity: 0.5, lineHeight: 1 }}>
-                      ✕
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
+        {/* Two-column row: wheel left / results right on md+, stacked on mobile */}
+        <div className="flex flex-col md:flex-row md:items-start md:gap-6 w-full">
+          {/* ── Wheel — top (clip) on mobile, left on desktop ── */}
+          <div className="md:flex-1 md:min-w-0">
+            <div className="flavor-wheel-clip md:contents w-full">{svgEl}</div>
+          </div>
 
-            {/* Score + description panel */}
-            {score !== null && (
-              <div
-                className="w-full rounded-2xl p-4 sm:p-5"
-                style={{ background: "#ffffff", border: "1px solid #e8d8c8" }}
+          {/* ── Results — below wheel on mobile, right on desktop ── */}
+          <div className="md:w-72 xl:w-80 flex flex-col gap-3 px-3 sm:px-4 md:px-0 md:pr-6 pt-4 md:pt-6 pb-2 md:pb-6">
+            {selected.size === 0 ? (
+              <p
+                className="text-center md:text-left mt-1"
+                style={{ fontSize: 13, color: "#b0a090", lineHeight: 1.7 }}
               >
-                <div className="flex items-baseline gap-2 mb-2 sm:mb-3">
-                  <span
-                    style={{
-                      fontSize: "clamp(36px, 10vw, 48px)",
-                      fontWeight: 700,
-                      lineHeight: 1,
-                      color: scoreColor(score),
-                      fontFamily: "Montserrat, sans-serif",
-                    }}
+                {ui.promptExplore}
+                <br />
+                <span style={{ fontSize: 12, opacity: 0.7 }}>
+                  {ui.promptDrag}
+                </span>
+              </p>
+            ) : (
+              <>
+                {/* Tags */}
+                <div>
+                  <p
+                    className="uppercase tracking-widest mb-2"
+                    style={{ fontSize: 10, fontWeight: 700, color: "#b0a090" }}
                   >
-                    {score}
-                  </span>
-                  <span
-                    style={{
-                      fontSize: "clamp(13px, 3.5vw, 16px)",
-                      color: "#b09070",
-                      fontFamily: "Montserrat, sans-serif",
-                    }}
-                  >
-                    /100
-                  </span>
-                  <span
-                    style={{
-                      fontSize: "clamp(12px, 3vw, 14px)",
-                      fontWeight: 600,
-                      color: scoreColor(score),
-                      fontFamily: "Montserrat, sans-serif",
-                      marginLeft: 4,
-                    }}
-                  >
-                    {scoreLabel(score)}
-                  </span>
+                    {ui.tastingNotes} &nbsp;·&nbsp; {selected.size}
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {Array.from(selected).map((id) => {
+                      const displayName = nameFor(id);
+                      return (
+                        <button
+                          key={id}
+                          onClick={() =>
+                            setSelected((prev) => {
+                              const next = new Set(prev);
+                              next.delete(id);
+                              return next;
+                            })
+                          }
+                          className="flex items-center gap-1.5 transition-all duration-150"
+                          style={{
+                            backgroundColor: "#1a0a00",
+                            color: "#faf6f2",
+                            border: "none",
+                            borderRadius: 999,
+                            padding: "5px 12px 5px 14px",
+                            fontSize: 12,
+                            fontWeight: 600,
+                            fontFamily: "Montserrat, sans-serif",
+                            cursor: "pointer",
+                            letterSpacing: "0.01em",
+                          }}
+                          onMouseEnter={(e) =>
+                            (e.currentTarget.style.backgroundColor = "#3d1f0d")
+                          }
+                          onMouseLeave={(e) =>
+                            (e.currentTarget.style.backgroundColor = "#1a0a00")
+                          }
+                        >
+                          {displayName}
+                          <span
+                            style={{
+                              fontSize: 9,
+                              opacity: 0.45,
+                              lineHeight: 1,
+                              marginLeft: 2,
+                            }}
+                          >
+                            ✕
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-                <p
-                  style={{
-                    margin: 0,
-                    fontSize: "clamp(13px, 3.5vw, 14px)",
-                    lineHeight: 1.7,
-                    color: "#4a3728",
-                    fontFamily: "Montserrat, sans-serif",
-                  }}
-                >
-                  {renderDescription(description)}
-                </p>
-              </div>
+
+                {/* Score panel */}
+                {score !== null && (
+                  <div className="w-full  overflow-hidden">
+                    <div />
+                    <div className="p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-baseline gap-1">
+                          <span
+                            style={{
+                              fontSize: 52,
+                              fontWeight: 800,
+                              lineHeight: 1,
+                              color: scoreColor(score),
+                              letterSpacing: "-0.03em",
+                            }}
+                          >
+                            {score}
+                          </span>
+                          <span style={{ fontSize: 13, color: "#b0a090" }}>
+                            /100
+                          </span>
+                        </div>
+                        <span
+                          style={{
+                            backgroundColor: scoreColor(score) + "1a",
+                            color: scoreColor(score),
+                            border: `1.5px solid ${scoreColor(score)}40`,
+                            borderRadius: 999,
+                            padding: "4px 12px",
+                            fontSize: 11,
+                            fontWeight: 700,
+                            letterSpacing: "0.06em",
+                            textTransform: "uppercase",
+                          }}
+                        >
+                          {scoreLabel(score, ui)}
+                        </span>
+                      </div>
+                      <div
+                        style={{
+                          height: 1,
+                          background: "#ead8c8",
+                          marginBottom: 12,
+                        }}
+                      />
+                      <p
+                        style={{
+                          margin: 0,
+                          fontSize: 13,
+                          lineHeight: 1.8,
+                          color: "#4a3728",
+                        }}
+                      >
+                        {renderDescription(description)}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </div>
-        )}
+        </div>
+        {/* end two-column row */}
 
-        <span
-          className="text-center px-4"
-          style={{ fontSize: "clamp(10px, 2.5vw, 12px)", color: "#9b8c80" }}
+        {/* Footer — full width below both columns */}
+        <p
+          className="text-center w-full py-4 px-4"
+          style={{ fontSize: 11, color: "#c4b4a4", letterSpacing: "0.04em" }}
         >
-          (c) 2026 Grain & Grains. Todos los derechos reservados. Inspirada en
-          la SCA.
-        </span>
+          {ui.footer}
+        </p>
       </div>
-      {/* end captureRef */}
     </div>
   );
 }
@@ -878,27 +992,16 @@ function blendHex(hex: string, blendWith: string, amount: number): string {
 
 // ─── scoring helpers ──────────────────────────────────────────────────────────
 
-function hasDescendant(node: FlavorNode, id: string): boolean {
-  if (node.id === id) return true;
-  return node.children?.some((c) => hasDescendant(c, id)) ?? false;
-}
-
-function findMainCat(leafId: string, nodes: FlavorNode[]): string | null {
-  for (const top of nodes) {
-    if (hasDescendant(top, leafId)) return top.id;
-  }
-  return null;
-}
-
 function computeScore(
   selected: Set<string>,
   data: FlavorNode[],
+  leafScores: Record<string, number>,
 ): number | null {
   if (selected.size === 0) return null;
   let raw = 72;
   const cats = new Set<string>();
   for (const id of selected) {
-    raw += LEAF_SCORES[id] ?? 0;
+    raw += leafScores[id] ?? 0;
     const cat = findMainCat(id, data);
     if (cat) cats.add(cat);
   }
@@ -906,14 +1009,14 @@ function computeScore(
   return Math.min(100, Math.max(55, Math.round(raw * 2) / 2));
 }
 
-function scoreLabel(s: number): string {
-  if (s >= 90) return "Excepcional";
-  if (s >= 85) return "Excelente";
-  if (s >= 80) return "Muy Bueno";
-  if (s >= 75) return "Bueno";
-  if (s >= 70) return "Aceptable";
-  if (s >= 60) return "Regular";
-  return "Con Defectos";
+function scoreLabel(s: number, ui: (typeof UI)[Locale]): string {
+  if (s >= 90) return ui.scoreExceptional;
+  if (s >= 85) return ui.scoreExcellent;
+  if (s >= 80) return ui.scoreVeryGood;
+  if (s >= 75) return ui.scoreGood;
+  if (s >= 70) return ui.scoreFair;
+  if (s >= 60) return ui.scoreAverage;
+  return ui.scoreDefective;
 }
 
 function scoreColor(s: number): string {
@@ -923,283 +1026,6 @@ function scoreColor(s: number): string {
   if (s >= 75) return "#F57F17";
   if (s >= 70) return "#E65100";
   return "#C62828";
-}
-
-function joinList(items: string[]): string {
-  if (items.length === 0) return "";
-  if (items.length === 1) return items[0];
-  return items.slice(0, -1).join(", ") + " y " + items[items.length - 1];
-}
-
-// Flavor names wrapped in [[…]] so renderDescription can highlight them.
-function buildDescription(
-  selected: Set<string>,
-  score: number,
-  data: FlavorNode[],
-): string {
-  const tag = (name: string) => `[[${name}]]`;
-
-  const sorted = Array.from(selected)
-    .map((id) => ({ id, s: LEAF_SCORES[id] ?? 0 }))
-    .sort((a, b) => b.s - a.s);
-
-  const positives = sorted.filter((f) => f.s > 0);
-  const neutrals = sorted.filter((f) => f.s === 0);
-  const negatives = sorted.filter((f) => f.s < 0);
-
-  // Group positive flavors by sensory family for stage-based description
-  const AROMATIC_IDS = new Set([
-    "jasmine",
-    "black-tea-flavor",
-    "rose",
-    "chamomile",
-  ]);
-  const FRUITY_IDS = new Set([
-    "blackberry",
-    "raspberry",
-    "blueberry",
-    "strawberry",
-    "grape",
-    "raisin",
-    "prune",
-    "coconut",
-    "cherry",
-    "pomegranate",
-    "pineapple",
-    "mango",
-    "papaya",
-    "passion-fruit",
-    "peach",
-    "pear",
-    "apple",
-    "apricot",
-    "grapefruit",
-    "orange",
-    "lemon",
-    "lime",
-  ]);
-  const ACID_IDS = new Set([
-    "sour",
-    "fermented",
-    "winey",
-    "malic",
-    "citric",
-    "phosphoric",
-    "lactic",
-  ]);
-  const SWEET_IDS = new Set([
-    "vanilla",
-    "vanillin",
-    "brown-sugar",
-    "molasses",
-    "maple-syrup",
-    "caramelized",
-    "honey",
-    "dark-chocolate",
-    "milk-chocolate",
-    "chocolate",
-  ]);
-  const ROAST_IDS = new Set([
-    "cereal",
-    "malt",
-    "grain",
-    "burnt",
-    "smoky",
-    "ashy",
-    "brown-roast",
-    "dark-roast",
-  ]);
-  const SPICE_NUT_IDS = new Set([
-    "walnut",
-    "hazelnut",
-    "almond",
-    "peanut",
-    "anise",
-    "pepper",
-    "clove",
-    "cinnamon",
-    "nutmeg",
-  ]);
-
-  const aromatic = positives
-    .filter((f) => AROMATIC_IDS.has(f.id))
-    .map((f) => tag(FLAVOR_NAMES_ES[f.id] ?? f.id));
-  const fruity = positives
-    .filter((f) => FRUITY_IDS.has(f.id))
-    .map((f) => tag(FLAVOR_NAMES_ES[f.id] ?? f.id));
-  const acidic = positives
-    .filter((f) => ACID_IDS.has(f.id))
-    .map((f) => tag(FLAVOR_NAMES_ES[f.id] ?? f.id));
-  const sweet = positives
-    .filter((f) => SWEET_IDS.has(f.id))
-    .map((f) => tag(FLAVOR_NAMES_ES[f.id] ?? f.id));
-  const roasty = positives
-    .filter((f) => ROAST_IDS.has(f.id))
-    .map((f) => tag(FLAVOR_NAMES_ES[f.id] ?? f.id));
-  const spiceNut = positives
-    .filter((f) => SPICE_NUT_IDS.has(f.id))
-    .map((f) => tag(FLAVOR_NAMES_ES[f.id] ?? f.id));
-  // Any positive not caught by the groups above
-  const other = positives
-    .filter(
-      (f) =>
-        ![
-          ...AROMATIC_IDS,
-          ...FRUITY_IDS,
-          ...ACID_IDS,
-          ...SWEET_IDS,
-          ...ROAST_IDS,
-          ...SPICE_NUT_IDS,
-        ].includes(f.id),
-    )
-    .map((f) => tag(FLAVOR_NAMES_ES[f.id] ?? f.id));
-  const neutralLabels = neutrals.map((f) => tag(FLAVOR_NAMES_ES[f.id] ?? f.id));
-  const negLabels = negatives.map((f) => tag(FLAVOR_NAMES_ES[f.id] ?? f.id));
-
-  const cats = new Set<string>();
-  for (const id of selected) {
-    const cat = findMainCat(id, data);
-    if (cat) cats.add(cat);
-  }
-
-  const parts: string[] = [];
-
-  // ── Fragrance / aroma stage ──
-  if (aromatic.length > 0 && fruity.length > 0) {
-    parts.push(
-      `En fragancia, la muestra abre con una expresión aromática de ${joinList(aromatic)}, entrelazada con notas frutales de ${joinList(fruity)}.`,
-    );
-  } else if (aromatic.length > 0) {
-    parts.push(
-      `En fragancia, predomina una nota floral de ${joinList(aromatic)} que perfuma el primer contacto con la taza.`,
-    );
-  } else if (fruity.length > 0) {
-    parts.push(
-      `En fragancia, la muestra expresa notas frutales de ${joinList(fruity)} con buena intensidad.`,
-    );
-  }
-
-  // ── Palate / flavor stage ──
-  const palateItems = [
-    ...(aromatic.length === 0 && fruity.length > 0 ? [] : []), // already covered above
-    ...sweet,
-    ...roasty,
-    ...spiceNut,
-    ...other,
-  ].filter(Boolean);
-
-  const palateAllItems = [
-    ...(aromatic.length === 0 ? fruity : []),
-    ...sweet,
-    ...roasty,
-    ...spiceNut,
-    ...other,
-  ].filter(Boolean);
-
-  if (parts.length === 0 && palateAllItems.length > 0) {
-    // No aromatic/fruity stage yet — start here
-    parts.push(
-      `En taza, el perfil de sabor despliega ${joinList(palateAllItems)}.`,
-    );
-  } else if (palateItems.length > 0) {
-    if (sweet.length > 0 && roasty.length > 0) {
-      parts.push(
-        `En el paladar, la dulzura de ${joinList(sweet)} dialoga con un fondo tostado de ${joinList(roasty)}${spiceNut.length > 0 ? `, con matices especiados de ${joinList(spiceNut)}` : ""}.`,
-      );
-    } else if (sweet.length > 0) {
-      parts.push(
-        `En boca, el cuerpo medio se apoya en una base de ${joinList(sweet)}${spiceNut.length > 0 ? ` y especias de ${joinList(spiceNut)}` : ""}.`,
-      );
-    } else if (roasty.length > 0) {
-      parts.push(
-        `En taza, el perfil tostado de ${joinList(roasty)} domina el paladar${spiceNut.length > 0 ? `, acompañado de ${joinList(spiceNut)}` : ""}.`,
-      );
-    } else if (spiceNut.length > 0 || other.length > 0) {
-      const combined = [...spiceNut, ...other];
-      parts.push(`En boca se perciben notas de ${joinList(combined)}.`);
-    }
-  }
-
-  // ── Acidity stage ──
-  if (acidic.length > 0) {
-    if (score >= 85) {
-      parts.push(
-        `La acidez es viva y bien estructurada, con notas de ${joinList(acidic)} que elevan la complejidad de la taza.`,
-      );
-    } else if (score >= 75) {
-      parts.push(
-        `La acidez, de carácter ${joinList(acidic)}, aporta frescura y equilibrio sin resultar invasiva.`,
-      );
-    } else {
-      parts.push(
-        `Se detecta acidez de tipo ${joinList(acidic)}, aunque requiere mayor integración con el resto del perfil.`,
-      );
-    }
-  }
-
-  // ── Neutral / textural notes ──
-  if (neutralLabels.length > 0) {
-    parts.push(
-      `El cuerpo exhibe notas de ${joinList(neutralLabels)} que redondean la textura en la boca.`,
-    );
-  }
-
-  // ── Finish / retrogusto ──
-  if (score >= 88) {
-    parts.push(
-      "El retrogusto es largo y persistente, con un final limpio que invita al siguiente sorbo.",
-    );
-  } else if (score >= 80) {
-    parts.push(
-      "El final deja una sensación agradable y bien definida en el paladar.",
-    );
-  } else if (score >= 72) {
-    parts.push("El retrogusto es corto pero reconocible.");
-  }
-
-  // ── Defects ──
-  if (negLabels.length > 0) {
-    if (negLabels.length === 1) {
-      parts.push(
-        `Se detecta un defecto de ${negLabels[0]} que compromete la limpieza de la taza y debe tenerse en cuenta en la evaluación final.`,
-      );
-    } else {
-      parts.push(
-        `Se registran defectos de ${joinList(negLabels)}, los cuales reducen la puntuación de limpieza e impactan la experiencia global.`,
-      );
-    }
-  }
-
-  // ── Overall / puntuación SCA ──
-  if (parts.length === 0) {
-    parts.push(
-      "Perfil en construcción — selecciona atributos para generar la descripción de cata.",
-    );
-  } else {
-    if (score >= 90) {
-      parts.push(
-        `Puntuación SCA estimada: ${score.toFixed(1)} — taza de specialty de clase superior, expresión limpia y complejidad que supera las expectativas de protocolo.`,
-      );
-    } else if (score >= 85) {
-      parts.push(
-        `Puntuación SCA estimada: ${score.toFixed(1)} — café specialty de alta calidad, con atributos que exceden los estándares mínimos de protocolo.`,
-      );
-    } else if (score >= 80) {
-      parts.push(
-        `Puntuación SCA estimada: ${score.toFixed(1)} — califica como specialty según el protocolo SCA, con balance y uniformidad satisfactorios.`,
-      );
-    } else if (score >= 75) {
-      parts.push(
-        `Puntuación SCA estimada: ${score.toFixed(1)} — por debajo del umbral specialty (80 pts), con potencial identificable que requiere trabajo en el proceso.`,
-      );
-    } else {
-      parts.push(
-        `Puntuación SCA estimada: ${score.toFixed(1)} — perfil con defectos o desequilibrios que no alcanzan el corte de specialty.`,
-      );
-    }
-  }
-
-  return parts.join(" ");
 }
 
 function renderDescription(text: string) {

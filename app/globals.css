@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  /* --background: #faf6f2; */
+  --background: #faf6f2;
   --foreground: #1a0a00;
 }
 
@@ -25,11 +25,10 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* ── Mobile + iPad flavor wheel: bottom-docked, zoomed-in partial view ──
-   Applies to all screens below lg (1024px). At lg+ the wrapper becomes
-   display:contents and the full wheel is shown normally. */
-@media (max-width: 1023px) {
-  /* Center circle + logo sit right at the clip boundary — hide them */
+/* ── Mobile-only flavor wheel: bottom-docked, zoomed-in partial view ──
+   Only applies below md (768px). Tablet and desktop show the full wheel. */
+@media (max-width: 767px) {
+  /* Center circle + logo sit right at the clip boundary on mobile — hide them */
   .center-logo-group {
     display: none;
   }
@@ -37,12 +36,9 @@ body {
   .flavor-wheel-clip {
     position: relative;
     width: 100%;
-    /* aspect-ratio keeps height = 75% of own width.
-       SVG is 150% wide (square) → center at 75% of width = clip height. */
     aspect-ratio: 4 / 3;
     overflow: hidden;
-    /* Force GPU compositing layer — fixes iOS Safari overflow:hidden bug
-       where large SVGs bleed outside the clip container */
+    /* Force GPU compositing layer — fixes iOS Safari overflow:hidden bug */
     -webkit-transform: translateZ(0);
     transform: translateZ(0);
   }
@@ -58,8 +54,7 @@ body {
     z-index: 1;
   }
 
-  /* Scale up the SVG so only the outer rings are visible.
-     display:block removes the inline line-height gap below the SVG. */
+  /* Scale up the SVG so only the outer rings are visible */
   .flavor-wheel-clip svg {
     display: block;
     width: 150% !important;

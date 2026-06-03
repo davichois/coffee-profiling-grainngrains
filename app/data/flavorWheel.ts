@@ -100,6 +100,16 @@ export const flavorWheelData: FlavorNode[] = [
             label: "Ácido Málico",
             color: "#AFB42B",
           },
+          {
+            id: "phosphoric-acid",
+            label: "Ácido Fosfórico",
+            color: "#C6CC44",
+          },
+          {
+            id: "lactic-acid",
+            label: "Ácido Láctico",
+            color: "#A5D6A7",
+          },
         ],
       },
       {
@@ -293,6 +303,7 @@ export const flavorWheelData: FlavorNode[] = [
         color: "#C68B59",
         children: [
           { id: "vanilla-flavor", label: "Vainilla", color: "#BCAAA4" },
+          { id: "vanillin", label: "Vainillina", color: "#E8D5B0" },
         ],
       },
     ],
@@ -305,12 +316,20 @@ export const flavorWheelData: FlavorNode[] = [
     children: [
       {
         id: "black-tea",
-        label: "Floral",
+        label: "Té Negro",
         color: "#D81B60",
         children: [
-          { id: "black-tea-flavor", label: "Manzanilla", color: "#F9A825" },
+          { id: "black-tea-flavor", label: "Té Negro", color: "#F9A825" },
+        ],
+      },
+      {
+        id: "floral-aromatics",
+        label: "Floral",
+        color: "#F06292",
+        children: [
           { id: "rose", label: "Rosa", color: "#E91E63" },
-          { id: "jasmine", label: "Jazmín", color: "#8D6E63" },
+          { id: "jasmine", label: "Jazmín", color: "#CE93D8" },
+          { id: "chamomile", label: "Manzanilla", color: "#FFF176" },
         ],
       },
     ],

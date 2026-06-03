@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Montserrat } from "next/font/google";
-import "./globals.css";
+import { notFound } from "next/navigation";
+import "../globals.css";
+import { LOCALES, isLocale } from "../i18n/config";
 
 const montserrat = Montserrat({
   variable: "--font-montserrat",
@@ -38,7 +40,6 @@ export const metadata: Metadata = {
     title: "Grain'N'Grains — Coffee Flavor Profiling",
     description:
       "Interactive coffee flavor wheel for specialty coffee tasting and profiling. Explore the full SCA flavor taxonomy.",
-    locale: "en_US",
     url: "https://grainngrains.com",
   },
   twitter: {
@@ -66,13 +67,23 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export function generateStaticParams() {
+  return LOCALES.map((lang) => ({ lang }));
+}
+
+export default async function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+  params,
+}: LayoutProps<"/[lang]">) {
+  const { lang } = await params;
+  if (!isLocale(lang)) notFound();
+
   return (
-    <html lang="en" className={`${montserrat.variable} h-full antialiased`} suppressHydrationWarning>
+    <html
+      lang={lang}
+      className={`${montserrat.variable} h-full antialiased`}
+      suppressHydrationWarning
+    >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );
