@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://grainngrains.com"),
   title: {
     default: "Flower Wheels - Grain & Grains",
-    template: "%s | Grain'N'Grains",
+    template: "%s | Grain & Grains",
   },
   description:
     "Interactive coffee flavor wheel for specialty coffee tasting and profiling. Explore the full SCA flavor taxonomy — from fruity and floral to roasted and spiced.",
@@ -32,19 +32,19 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "David Prada" }],
   creator: "David Prada",
-  publisher: "Grain'N'Grains",
+  publisher: "Grain & Grains",
   category: "Food & Drink",
   openGraph: {
     type: "website",
-    siteName: "Grain'N'Grains",
-    title: "Grain'N'Grains — Flower Wheels",
+    siteName: "Grain & Grains",
+    title: "Grain & Grains — Flower Wheels",
     description:
       "Interactive coffee flavor wheel for specialty coffee tasting and profiling. Explore the full SCA flavor taxonomy.",
     url: "https://grainngrains.com",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Grain'N'Grains — Flower Wheels",
+    title: "Grain & Grains — Flower Wheels",
     description:
       "Interactive coffee flavor wheel for specialty coffee tasting and profiling.",
     creator: "@grainngrains",

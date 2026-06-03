@@ -9,11 +9,11 @@ import {
 } from "../../data/flavorWheelPeru";
 
 export const metadata: Metadata = {
-  title: "Rueda de Sabores Perú",
+  title: "Flower Wheels Perú",
   description:
     "Rueda de sabores del café peruano. Incluye la taxonomía SCA completa extendida con frutas amazónicas, frutas andinas, ajíes peruanos, cacao nativo chuncho y porcelana, y los sabores únicos de la gastronomía del Perú.",
   openGraph: {
-    title: "Rueda de Sabores Perú | Grain'N'Grains",
+    title: "Rueda de Sabores Perú | Grain & Grains",
     description:
       "Rueda de sabores interactiva del café peruano. Frutas amazónicas, cacao chuncho, ajíes, lúcuma y mucho más.",
     type: "website",
