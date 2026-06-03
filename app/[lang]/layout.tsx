@@ -14,7 +14,7 @@ const montserrat = Montserrat({
 export const metadata: Metadata = {
   metadataBase: new URL("https://grainngrains.com"),
   title: {
-    default: "Grain'N'Grains — Coffee Flavor Profiling",
+    default: "Flower Wheels - Grain & Grains",
     template: "%s | Grain'N'Grains",
   },
   description:
@@ -37,14 +37,14 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: "Grain'N'Grains",
-    title: "Grain'N'Grains — Coffee Flavor Profiling",
+    title: "Grain'N'Grains — Flower Wheels",
     description:
       "Interactive coffee flavor wheel for specialty coffee tasting and profiling. Explore the full SCA flavor taxonomy.",
     url: "https://grainngrains.com",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Grain'N'Grains — Coffee Flavor Profiling",
+    title: "Grain'N'Grains — Flower Wheels",
     description:
       "Interactive coffee flavor wheel for specialty coffee tasting and profiling.",
     creator: "@grainngrains",
