@@ -13,6 +13,10 @@ export interface UIStrings {
   tastingNotes: string; // "Notas de cata"
   language: string; // language switcher aria-label / heading
   footer: string;
+  // Access gate screen
+  blockedTitle: string;
+  blockedMessage: string;
+  blockedCta: string;
   // Score qualifiers, from best to worst.
   scoreExceptional: string;
   scoreExcellent: string;
@@ -35,6 +39,10 @@ export const UI: Record<Locale, UIStrings> = {
     tastingNotes: "Notas de cata",
     language: "Idioma",
     footer: "© 2026 Grain'N'Grains · Inspirada en la SCA",
+    blockedTitle: "Acceso bloqueado",
+    blockedMessage:
+      "Si deseas probar la rueda de sabores, compra un café de Grain & Grains para sumergirte en esta aventura.",
+    blockedCta: "Comprar café",
     scoreExceptional: "Excepcional",
     scoreExcellent: "Excelente",
     scoreVeryGood: "Muy Bueno",
@@ -54,6 +62,10 @@ export const UI: Record<Locale, UIStrings> = {
     tastingNotes: "Tasting notes",
     language: "Language",
     footer: "© 2026 Grain'N'Grains · Inspired by the SCA",
+    blockedTitle: "Access blocked",
+    blockedMessage:
+      "If you'd like to try the flavor wheel, buy a Grain & Grains coffee to dive into this adventure.",
+    blockedCta: "Buy coffee",
     scoreExceptional: "Exceptional",
     scoreExcellent: "Excellent",
     scoreVeryGood: "Very Good",
@@ -73,6 +85,10 @@ export const UI: Record<Locale, UIStrings> = {
     tastingNotes: "Notas de prova",
     language: "Idioma",
     footer: "© 2026 Grain'N'Grains · Inspirada na SCA",
+    blockedTitle: "Acesso bloqueado",
+    blockedMessage:
+      "Se quiser experimentar a roda de sabores, compre um café da Grain & Grains para mergulhar nesta aventura.",
+    blockedCta: "Comprar café",
     scoreExceptional: "Excepcional",
     scoreExcellent: "Excelente",
     scoreVeryGood: "Muito Bom",
@@ -92,6 +108,10 @@ export const UI: Record<Locale, UIStrings> = {
     tastingNotes: "Notes de dégustation",
     language: "Langue",
     footer: "© 2026 Grain'N'Grains · Inspirée de la SCA",
+    blockedTitle: "Accès bloqué",
+    blockedMessage:
+      "Si vous souhaitez essayer la roue des saveurs, achetez un café Grain & Grains pour plonger dans cette aventure.",
+    blockedCta: "Acheter du café",
     scoreExceptional: "Exceptionnel",
     scoreExcellent: "Excellent",
     scoreVeryGood: "Très Bon",
@@ -111,6 +131,10 @@ export const UI: Record<Locale, UIStrings> = {
     tastingNotes: "Verkostungsnotizen",
     language: "Sprache",
     footer: "© 2026 Grain'N'Grains · Inspiriert von der SCA",
+    blockedTitle: "Zugang gesperrt",
+    blockedMessage:
+      "Wenn du das Aromenrad ausprobieren möchtest, kaufe einen Kaffee von Grain & Grains, um in dieses Abenteuer einzutauchen.",
+    blockedCta: "Kaffee kaufen",
     scoreExceptional: "Außergewöhnlich",
     scoreExcellent: "Hervorragend",
     scoreVeryGood: "Sehr Gut",
@@ -130,6 +154,10 @@ export const UI: Record<Locale, UIStrings> = {
     tastingNotes: "品鉴笔记",
     language: "语言",
     footer: "© 2026 Grain'N'Grains · 灵感源自 SCA",
+    blockedTitle: "访问已锁定",
+    blockedMessage:
+      "如果你想体验风味轮，请购买一份 Grain & Grains 咖啡，投入这场冒险。",
+    blockedCta: "购买咖啡",
     scoreExceptional: "卓越",
     scoreExcellent: "优秀",
     scoreVeryGood: "很好",
@@ -149,6 +177,10 @@ export const UI: Record<Locale, UIStrings> = {
     tastingNotes: "テイスティングノート",
     language: "言語",
     footer: "© 2026 Grain'N'Grains · SCA に着想を得て",
+    blockedTitle: "アクセスがブロックされています",
+    blockedMessage:
+      "フレーバーホイールを試したい方は、Grain & Grains のコーヒーを購入して、この冒険に飛び込みましょう。",
+    blockedCta: "コーヒーを購入",
     scoreExceptional: "卓越",
     scoreExcellent: "優秀",
     scoreVeryGood: "とても良い",

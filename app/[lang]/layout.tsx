@@ -3,6 +3,8 @@ import { Montserrat } from "next/font/google";
 import { notFound } from "next/navigation";
 import "../globals.css";
 import { LOCALES, isLocale } from "../i18n/config";
+import { ACCESS_BLOCKED } from "../config/access";
+import { AccessBlocked } from "../components/AccessBlocked";
 
 const montserrat = Montserrat({
   variable: "--font-montserrat",
@@ -12,7 +14,7 @@ const montserrat = Montserrat({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://grainngrains.com"),
+  metadataBase: new URL("https://grainngrains.org"),
   title: {
     default: "Flower Wheels - Grain & Grains",
     template: "%s | Grain & Grains",
@@ -84,7 +86,9 @@ export default async function RootLayout({
       className={`${montserrat.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {ACCESS_BLOCKED ? <AccessBlocked locale={lang} /> : children}
+      </body>
     </html>
   );
 }
