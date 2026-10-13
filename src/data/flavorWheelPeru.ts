@@ -635,9 +635,3 @@ export const PERU_FLAVOR_NAMES_ES: Record<string, string> = {
   rubber: "goma",
 };
 
-export const PERU_INITIAL_OPEN_IDS = new Set([
-  "afrutado-selvatico",
-  "frutas-amazonicas",
-  "nueces-cacao-nativo",
-  "cacao-nativo-peru",
-]);

@@ -1,10 +1,10 @@
-import Link from "next/link";
-import type { Locale } from "../i18n/config";
-import { UI } from "../i18n/ui";
+"use client";
+
+import { useTranslations } from "next-intl";
+import { Link } from "@/src/i18n/navigation";
 
 interface WheelNavProps {
   active: "sca" | "peru";
-  locale: Locale;
 }
 
 // ── Grain'N'Grains brand palette (from the logo) ──
@@ -23,24 +23,24 @@ function tabStyle(isActive: boolean): React.CSSProperties {
   };
 }
 
-export function WheelNav({ active, locale }: WheelNavProps) {
-  const ui = UI[locale];
+export function WheelNav({ active }: WheelNavProps) {
+  const t = useTranslations("ui");
   return (
     <nav className="flex justify-center gap-2">
       <Link
-        href={`/${locale}`}
+        href="/"
         className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold transition-all duration-200"
         style={tabStyle(active === "sca")}
       >
-        {ui.navSca}
+        {t("navSca")}
       </Link>
 
       <Link
-        href={`/${locale}/peru`}
+        href="/peru"
         className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold transition-all duration-200"
         style={tabStyle(active === "peru")}
       >
-        {ui.navPeru}
+        {t("navPeru")}
       </Link>
     </nav>
   );

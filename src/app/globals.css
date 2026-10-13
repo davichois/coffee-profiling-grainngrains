@@ -1,0 +1,166 @@
+@import "tailwindcss";
+
+:root {
+  --background: #faf6f2;
+  --foreground: #1a0a00;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-montserrat);
+}
+
+/* html + body both carry the background so iOS rubber-band and viewport
+   discrepancies never show the white browser default */
+html,
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-montserrat), Montserrat, sans-serif;
+  overflow-x: hidden;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ── Flavor wheel ───────────────────────────────────────────────────────────
+   The wheel is the hero: full width, centred, and always shown whole at every
+   breakpoint. The SVG carries a 900×900 viewBox and scales down fluidly, so
+   nothing is cropped on phones. Two-finger pinch zoom is left to the browser
+   (see `touch-action: pinch-zoom` on the <svg>) so labels can be inspected. */
+.flavor-wheel {
+  width: 100%;
+}
+
+.flavor-wheel-stage > svg {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  /* Soft depth so the disc lifts off the cream background. */
+  filter: drop-shadow(0 18px 38px rgba(26, 10, 0, 0.16));
+}
+
+/* ── Motion ──────────────────────────────────────────────────────────────── */
+
+/* Wedges bloom outward from the hub when a branch opens. */
+@keyframes wedge-in {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Labels arrive just after their wedge. */
+@keyframes label-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.wedge {
+  transform-box: view-box;
+  transform-origin: 450px 450px;
+  animation: wedge-in 420ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  transition:
+    fill 220ms ease,
+    opacity 220ms ease,
+    stroke-width 220ms ease,
+    transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Labels fade in and ride the same outward lift as their wedge. */
+.wedge-label {
+  animation: label-in 420ms ease-out backwards;
+  transition:
+    opacity 220ms ease,
+    transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ── Export snapshot ──────────────────────────────────────────────────────── */
+
+/* The session controls are for the app, not for the picture: the exported PNG
+   shows only the tasting's name. */
+.session-export-title {
+  display: none;
+}
+
+.exporting .session-export-title {
+  display: block;
+}
+
+.exporting .session-bar {
+  display: none;
+}
+
+/* The export snapshot must never catch a half-played animation. */
+.exporting .wedge,
+.exporting .wedge-label {
+  animation: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wedge,
+  .wedge-label {
+    animation: none;
+  }
+  .wedge,
+  .wedge-label {
+    transition: none;
+  }
+}
+
+/* ── Phones and tablets: a zoomed window onto the disc ──────────────────────
+   Below 1024px the whole wheel would scale to ~0.43×, rendering labels at
+   about 3 CSS px. Instead the disc is drawn at twice the container width and
+   cropped, so type lands near 11 CSS px; dragging rotates the rest into view.
+
+   The window height is 0.86× its width on purpose: with a 2× disc that puts
+   the bottom cut exactly at the hub, so the rings end on a clean inner arc
+   instead of slicing the logo in half. */
+@media (max-width: 1023px) {
+  .flavor-wheel {
+    max-width: none;
+  }
+
+  .flavor-wheel-stage {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 0.86;
+    overflow: hidden;
+    border-radius: 18px;
+    /* iOS Safari needs its own layer for overflow clipping to hold */
+    transform: translateZ(0);
+  }
+
+  .flavor-wheel-stage > svg {
+    width: 200%;
+    max-width: none;
+    height: auto;
+    margin-left: -50%;
+    display: block;
+    /* the drop shadow would only be clipped by the window */
+    filter: none;
+  }
+
+  /* ── Exports always capture the whole wheel ── */
+  .exporting .flavor-wheel-stage {
+    aspect-ratio: auto;
+    overflow: visible;
+    transform: none;
+  }
+
+  .exporting .flavor-wheel-stage > svg {
+    width: 100%;
+    margin-left: 0;
+  }
+}

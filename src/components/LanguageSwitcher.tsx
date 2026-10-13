@@ -1,20 +1,19 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import Link from "next/link";
-import { LOCALES, LOCALE_NAMES, type Locale } from "../i18n/config";
-
-interface Props {
-  current: Locale;
-  /** Path after the locale segment, e.g. "" for home or "/peru". */
-  basePath: string;
-}
+import { useLocale } from "next-intl";
+import { Link, usePathname } from "@/src/i18n/navigation";
+import { routing, type Locale } from "@/src/i18n/routing";
+import { LOCALE_NAMES } from "@/src/i18n/locales";
 
 const TEAL = "#116e78";
 const TEAL_LIGHT = "#279ba8";
 const CREAM = "#faf6f2";
 
-export function LanguageSwitcher({ current, basePath }: Props) {
+export function LanguageSwitcher() {
+  const current = useLocale() as Locale;
+  // Locale-free pathname, so switching language keeps you on the same page.
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -113,12 +112,13 @@ export function LanguageSwitcher({ current, basePath }: Props) {
             margin: 0,
           }}
         >
-          {LOCALES.map((loc) => {
+          {routing.locales.map((loc) => {
             const isActive = loc === current;
             return (
               <li key={loc}>
                 <Link
-                  href={`/${loc}${basePath}`}
+                  href={pathname}
+                  locale={loc}
                   onClick={() => setOpen(false)}
                   role="option"
                   aria-selected={isActive}

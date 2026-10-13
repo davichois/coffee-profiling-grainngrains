@@ -1,5 +1,5 @@
-import type { Locale } from "../i18n/config";
-import { SEO } from "../i18n/seo";
+import { getTranslations } from "next-intl/server";
+import type { Locale } from "@/src/i18n/routing";
 import {
   SITE_URL,
   BRAND_NAME,
@@ -7,12 +7,12 @@ import {
   BRAND_SOCIALS,
   BRAND_EMAIL,
   BRAND_PHONE,
-} from "../config/site";
+} from "@/src/lib/site";
 
 // Structured data so search engines understand the brand ("Grain & Grains",
 // "Grain and Grains", "grainngrains") and the flavor-wheel web app.
-export function BrandJsonLd({ locale }: { locale: Locale }) {
-  const seo = SEO[locale];
+export async function BrandJsonLd({ locale }: { locale: Locale }) {
+  const seo = await getTranslations("seo");
   const orgId = `${SITE_URL}/#organization`;
   const siteId = `${SITE_URL}/#website`;
 
@@ -45,8 +45,8 @@ export function BrandJsonLd({ locale }: { locale: Locale }) {
       },
       {
         "@type": "WebApplication",
-        name: seo.home.title,
-        description: seo.home.description,
+        name: seo("homeTitle"),
+        description: seo("homeDescription"),
         url: `${SITE_URL}/${locale}`,
         applicationCategory: "LifestyleApplication",
         operatingSystem: "Web",

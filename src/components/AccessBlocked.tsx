@@ -1,16 +1,15 @@
 import Image from "next/image";
 import grainngrains from "@/public/grainngrains.svg";
-import { UI } from "../i18n/ui";
-import type { Locale } from "../i18n/config";
-import { SHOP_URL } from "../config/access";
+import { getTranslations } from "next-intl/server";
+import { SHOP_URL } from "@/src/lib/access";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 
 const DARK = "#1a0a00";
 const MUTED = "#6b5744";
 const CREAM = "#faf6f2";
 
-export function AccessBlocked({ locale }: { locale: Locale }) {
-  const ui = UI[locale];
+export async function AccessBlocked() {
+  const ui = await getTranslations("ui");
   return (
     <div
       className="relative min-h-screen w-full flex flex-col items-center justify-center px-6 text-center"
@@ -20,7 +19,7 @@ export function AccessBlocked({ locale }: { locale: Locale }) {
           same spot: centered max-w-7xl band with pt-5 px-4 sm:px-6, aligned right. */}
       <div className="fixed inset-x-0 top-5 z-50">
         <div className="w-full md:max-w-7xl md:mx-auto px-4 sm:px-6 flex justify-end">
-          <LanguageSwitcher current={locale} basePath="" />
+          <LanguageSwitcher />
         </div>
       </div>
 
@@ -61,7 +60,7 @@ export function AccessBlocked({ locale }: { locale: Locale }) {
             <rect x="3" y="11" width="18" height="11" rx="2" />
             <path d="M7 11V7a5 5 0 0 1 10 0v4" />
           </svg>
-          <span>{ui.blockedTitle}</span>
+          <span>{ui("blockedTitle")}</span>
         </div>
 
         <p
@@ -73,7 +72,7 @@ export function AccessBlocked({ locale }: { locale: Locale }) {
             fontWeight: 500,
           }}
         >
-          {ui.blockedMessage}
+          {ui("blockedMessage")}
         </p>
 
         <a
@@ -105,7 +104,7 @@ export function AccessBlocked({ locale }: { locale: Locale }) {
             <line x1="10" y1="1" x2="10" y2="4" />
             <line x1="14" y1="1" x2="14" y2="4" />
           </svg>
-          <span>{ui.blockedCta}</span>
+          <span>{ui("blockedCta")}</span>
         </a>
       </div>
     </div>
