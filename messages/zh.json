@@ -9,7 +9,7 @@
     "promptDrag": "拖动风味轮以旋转",
     "tastingNotes": "品鉴笔记",
     "language": "语言",
-    "footer": "© 2026 Grain'N'Grains · 灵感源自 SCA",
+    "footer": "© 2026 Grain & Grains — 精品咖啡 · 灵感源自 SCA · 秘鲁首个风味轮",
     "blockedTitle": "访问已锁定",
     "blockedMessage": "如果你想体验风味轮，请购买一份 Grain & Grains 咖啡，投入这场冒险。",
     "blockedCta": "购买咖啡",
@@ -31,7 +31,14 @@
     "pasteCode": "粘贴他人品鉴代码",
     "importCode": "导入",
     "invalidCode": "代码无效",
-    "readOnly": "只读"
+    "readOnly": "只读",
+    "exportTagline": "精品咖啡风味轮",
+    "search": "搜索",
+    "searchPlaceholder": "搜索风味…",
+    "searchEmpty": "无结果",
+    "searchHint": "↑↓ 导航 · ↵ 选择 · esc 关闭",
+    "menu": "菜单",
+    "wheel": "风味轮"
   },
   "seo": {
     "homeTitle": "Grain & Grains 咖啡风味轮 | 精品咖啡品鉴",
@@ -237,5 +244,14 @@
     "whiskey": "威士忌",
     "winey": "酒香",
     "woody": "木质味"
+  },
+  "languages": {
+    "es": "西班牙语",
+    "en": "英语",
+    "pt": "葡萄牙语",
+    "fr": "法语",
+    "de": "德语",
+    "zh": "中文",
+    "ja": "日语"
   }
 }

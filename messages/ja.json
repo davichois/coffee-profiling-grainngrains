@@ -9,7 +9,7 @@
     "promptDrag": "ホイールをドラッグして回転",
     "tastingNotes": "テイスティングノート",
     "language": "言語",
-    "footer": "© 2026 Grain'N'Grains · SCA に着想を得て",
+    "footer": "© 2026 Grain & Grains — スペシャルティコーヒー · SCA に着想 · ペルー初のフレーバーホイール",
     "blockedTitle": "アクセスがブロックされています",
     "blockedMessage": "フレーバーホイールを試したい方は、Grain & Grains のコーヒーを購入して、この冒険に飛び込みましょう。",
     "blockedCta": "コーヒーを購入",
@@ -31,7 +31,14 @@
     "pasteCode": "他のテイスティングのコードを貼り付け",
     "importCode": "読み込む",
     "invalidCode": "無効なコード",
-    "readOnly": "読み取り専用"
+    "readOnly": "読み取り専用",
+    "exportTagline": "スペシャルティコーヒーのフレーバーホイール",
+    "search": "検索",
+    "searchPlaceholder": "フレーバーを検索…",
+    "searchEmpty": "結果なし",
+    "searchHint": "↑↓ 移動 · ↵ 決定 · esc 閉じる",
+    "menu": "メニュー",
+    "wheel": "ホイール"
   },
   "seo": {
     "homeTitle": "Grain & Grains フレーバーホイール | スペシャルティコーヒーのテイスティング",
@@ -237,5 +244,14 @@
     "whiskey": "ウイスキー",
     "winey": "ワイン様",
     "woody": "木質"
+  },
+  "languages": {
+    "es": "スペイン語",
+    "en": "英語",
+    "pt": "ポルトガル語",
+    "fr": "フランス語",
+    "de": "ドイツ語",
+    "zh": "中国語",
+    "ja": "日本語"
   }
 }

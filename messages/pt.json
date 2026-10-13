@@ -9,7 +9,7 @@
     "promptDrag": "Arraste a roda para girá-la",
     "tastingNotes": "Notas de prova",
     "language": "Idioma",
-    "footer": "© 2026 Grain'N'Grains · Inspirada na SCA",
+    "footer": "© 2026 Grain & Grains — Café especial · Inspirada na SCA · Primeira roda de sabores do Peru",
     "blockedTitle": "Acesso bloqueado",
     "blockedMessage": "Se quiser experimentar a roda de sabores, compre um café da Grain & Grains para mergulhar nesta aventura.",
     "blockedCta": "Comprar café",
@@ -31,7 +31,14 @@
     "pasteCode": "Colar código de outra prova",
     "importCode": "Importar",
     "invalidCode": "Código inválido",
-    "readOnly": "somente leitura"
+    "readOnly": "somente leitura",
+    "exportTagline": "Roda de sabores de café especial",
+    "search": "Buscar",
+    "searchPlaceholder": "Buscar um sabor…",
+    "searchEmpty": "Sem resultados",
+    "searchHint": "↑↓ navegar · ↵ escolher · esc fechar",
+    "menu": "Menu",
+    "wheel": "Roda"
   },
   "seo": {
     "homeTitle": "Roda de Sabores da Grain & Grains | Prova de Café Especial",
@@ -237,5 +244,14 @@
     "whiskey": "Whisky",
     "winey": "Vinho",
     "woody": "Amadeirado"
+  },
+  "languages": {
+    "es": "Espanhol",
+    "en": "Inglês",
+    "pt": "Português",
+    "fr": "Francês",
+    "de": "Alemão",
+    "zh": "Chinês",
+    "ja": "Japonês"
   }
 }

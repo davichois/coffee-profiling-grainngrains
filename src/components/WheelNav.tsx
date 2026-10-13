@@ -7,7 +7,7 @@ interface WheelNavProps {
   active: "sca" | "peru";
 }
 
-// ── Grain'N'Grains brand palette (from the logo) ──
+// ── Grain & Grains brand palette (from the logo) ──
 const TEAL = "#444444"; // primary teal
 const TEAL_LIGHT = "#4a4a4a"; // lighter teal accent
 const CREAM = "#faf6f2";

@@ -9,7 +9,7 @@
     "promptDrag": "Faites glisser la roue pour la tourner",
     "tastingNotes": "Notes de dégustation",
     "language": "Langue",
-    "footer": "© 2026 Grain'N'Grains · Inspirée de la SCA",
+    "footer": "© 2026 Grain & Grains — Café de spécialité · Inspirée de la SCA · Première roue des saveurs du Pérou",
     "blockedTitle": "Accès bloqué",
     "blockedMessage": "Si vous souhaitez essayer la roue des saveurs, achetez un café Grain & Grains pour plonger dans cette aventure.",
     "blockedCta": "Acheter du café",
@@ -31,7 +31,14 @@
     "pasteCode": "Coller le code d'une autre dégustation",
     "importCode": "Importer",
     "invalidCode": "Code non valide",
-    "readOnly": "lecture seule"
+    "readOnly": "lecture seule",
+    "exportTagline": "Roue des saveurs du café de spécialité",
+    "search": "Rechercher",
+    "searchPlaceholder": "Rechercher une saveur…",
+    "searchEmpty": "Aucun résultat",
+    "searchHint": "↑↓ naviguer · ↵ choisir · échap fermer",
+    "menu": "Menu",
+    "wheel": "Roue"
   },
   "seo": {
     "homeTitle": "Roue des Saveurs Grain & Grains | Dégustation de Café de Spécialité",
@@ -237,5 +244,14 @@
     "whiskey": "Whisky",
     "winey": "Vineux",
     "woody": "Boisé"
+  },
+  "languages": {
+    "es": "Espagnol",
+    "en": "Anglais",
+    "pt": "Portugais",
+    "fr": "Français",
+    "de": "Allemand",
+    "zh": "Chinois",
+    "ja": "Japonais"
   }
 }

@@ -9,7 +9,7 @@
     "promptDrag": "Drag the wheel to spin it",
     "tastingNotes": "Tasting notes",
     "language": "Language",
-    "footer": "© 2026 Grain'N'Grains · Inspired by the SCA",
+    "footer": "© 2026 Grain & Grains — Specialty coffee · Inspired by the SCA · First Peruvian flavor wheel",
     "blockedTitle": "Access blocked",
     "blockedMessage": "If you'd like to try the flavor wheel, buy a Grain & Grains coffee to dive into this adventure.",
     "blockedCta": "Buy coffee",
@@ -31,7 +31,14 @@
     "pasteCode": "Paste another tasting's code",
     "importCode": "Import",
     "invalidCode": "Invalid code",
-    "readOnly": "read only"
+    "readOnly": "read only",
+    "exportTagline": "Specialty coffee flavor wheel",
+    "search": "Search",
+    "searchPlaceholder": "Search a flavor…",
+    "searchEmpty": "No results",
+    "searchHint": "↑↓ navigate · ↵ select · esc close",
+    "menu": "Menu",
+    "wheel": "Wheel"
   },
   "seo": {
     "homeTitle": "Grain & Grains Flavor Wheel | Specialty Coffee Tasting",
@@ -238,5 +245,14 @@
     "whiskey": "Whiskey",
     "winey": "Winey",
     "woody": "Woody"
+  },
+  "languages": {
+    "es": "Spanish",
+    "en": "English",
+    "pt": "Portuguese",
+    "fr": "French",
+    "de": "German",
+    "zh": "Chinese",
+    "ja": "Japanese"
   }
 }

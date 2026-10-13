@@ -12,7 +12,8 @@ export const LOCALE_NAMES: Record<Locale, string> = {
 };
 
 export const LOCALE_FLAGS: Record<Locale, string> = {
-  es: "🇪🇸",
+  // Peru, not Spain: this is a Peruvian coffee brand.
+  es: "🇵🇪",
   en: "🇬🇧",
   pt: "🇧🇷",
   fr: "🇫🇷",

@@ -7,6 +7,9 @@ import jsPDF from "jspdf";
 import { GrainngrainsLogo } from "./GrainngrainsLogo";
 import { WheelNav } from "./WheelNav";
 import { LanguageSwitcher } from "./LanguageSwitcher";
+import { FlavorSearch, type SearchItem } from "./FlavorSearch";
+import { WheelSelect } from "./WheelSelect";
+import { INK, LINE, ON_INK } from "@/src/lib/ui-colors";
 import { useTranslations } from "next-intl";
 import { buildDescription, findMainCat } from "@/src/i18n/describe";
 import {
@@ -373,9 +376,20 @@ function captureFilter(node: Node): boolean {
   return true;
 }
 
+/** The export sheet is 1000×1000 CSS px; at 2× that is a 2000×2000 PNG.
+ *  Width and height are passed explicitly so the canvas never drifts with
+ *  sub-pixel layout rounding. */
+const EXPORT_SIZE = 1000;
+
+/** The exported score is neutral so it sits with the cream and the wheel's own
+ *  colours; on screen the number stays colour-coded by rating. */
+const EXPORT_SCORE_COLOR = "#38332e";
+
 const CAPTURE_OPTIONS = {
   pixelRatio: 2,
-  backgroundColor: "#ffffff",
+  width: EXPORT_SIZE,
+  height: EXPORT_SIZE,
+  backgroundColor: "#faf6f2",
   filter: captureFilter,
 } as const;
 
@@ -657,6 +671,14 @@ export default function FlavorWheel({ config }: { config?: WheelConfig } = {}) {
     null,
   );
   const [renamingId, setRenamingId] = useState<string | null>(null);
+  // The export sheet is a second copy of the wheel, so it is mounted only for
+  // the snapshot — otherwise every hover would re-render it too.
+  const [exporting, setExporting] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  // Below lg the header would be crowded, so everything but the search folds
+  // into this menu.
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
   const [codeInput, setCodeInput] = useState("");
   const [notice, setNotice] = useState<"copied" | "invalid" | null>(null);
   const activeRef = useRef<{ shelf: "own" | "shared"; id: string } | null>(null);
@@ -687,11 +709,12 @@ export default function FlavorWheel({ config }: { config?: WheelConfig } = {}) {
     return ids;
   }, [wheelData]);
 
-  // Reading somebody else's tasting, the wheel shows what they picked: the
-  // chosen descriptors and the families leading to them stay lit, everything
-  // else recedes — the same idea as the hover focus, held in place.
+  // Once a tasting has picks, the wheel shows them: the chosen descriptors and
+  // the families leading to them stay lit while the rest recedes — the same
+  // idea as the hover focus, held in place. It reads the tasting at a glance,
+  // on screen and in the exported picture alike.
   const litPath = useMemo(() => {
-    if (!activeIsShared) return null;
+    if (selected.size === 0) return null;
     const keep = new Set<string>();
     const walk = (nodes: FlavorNode[]): boolean => {
       let any = false;
@@ -706,7 +729,21 @@ export default function FlavorWheel({ config }: { config?: WheelConfig } = {}) {
     };
     walk(wheelData);
     return keep;
-  }, [activeIsShared, selected, wheelData]);
+  }, [selected, wheelData]);
+
+  // Flat index of every selectable descriptor, with the trail that leads to it.
+  const searchItems = useMemo<SearchItem[]>(() => {
+    const out: SearchItem[] = [];
+    const walk = (nodes: FlavorNode[], trail: string[]) => {
+      for (const n of nodes) {
+        const name = tFlavors.has(n.id) ? tFlavors(n.id) : n.label;
+        if (n.children?.length) walk(n.children, [...trail, name]);
+        else out.push({ id: n.id, label: name, trail: trail.join(" › ") });
+      }
+    };
+    walk(wheelData, []);
+    return out;
+  }, [wheelData, tFlavors]);
 
   // Imported tastings belong to whoever made them, so they never change here.
   const setSelected = useCallback(
@@ -775,10 +812,52 @@ export default function FlavorWheel({ config }: { config?: WheelConfig } = {}) {
     save("shared", shared);
   }, [own, shared, activeWheel]);
 
+  /** Opens the branch holding a descriptor and adds it to the tasting. */
+  const pickFromSearch = (id: string) => {
+    const path: string[] = [];
+    const find = (nodes: FlavorNode[], trail: string[]): boolean => {
+      for (const n of nodes) {
+        if (n.id === id) {
+          path.push(...trail);
+          return true;
+        }
+        if (n.children && find(n.children, [...trail, n.id])) return true;
+      }
+      return false;
+    };
+    find(wheelData, []);
+    // Reveal it on the wheel, then select it.
+    setOpenIds((prev) => new Set([...prev, ...path]));
+    setSelected((prev) => new Set(prev).add(id));
+  };
+
   const flash = (kind: "copied" | "invalid") => {
     setNotice(kind);
     window.setTimeout(() => setNotice(null), 2200);
   };
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    // The sheet covers the screen, so there is no outside to click: Escape and
+    // the close button are the ways out.
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMenuOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [menuOpen]);
+
+  // ⌘K / Ctrl+K opens the search, the way a launcher does.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setSearchOpen(true);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   const addSession = () => {
     if (own.length >= MAX_SESSIONS) return;
@@ -843,26 +922,32 @@ export default function FlavorWheel({ config }: { config?: WheelConfig } = {}) {
     setCodeInput("");
   };
 
-  const exportPng = useCallback(async () => {
-    if (!captureRef.current) return;
-    outerRef.current?.classList.add("exporting-outer");
-    captureRef.current.classList.add("exporting");
-    const dataUrl = await toPng(captureRef.current, CAPTURE_OPTIONS);
-    captureRef.current.classList.remove("exporting");
-    outerRef.current?.classList.remove("exporting-outer");
-    const link = document.createElement("a");
-    link.download = exportFilename;
-    link.href = dataUrl;
-    link.click();
-  }, []);
+  /** Mounts the export sheet, waits for it to lay out, then runs `shoot`. */
+  const withExportSheet = async (shoot: (node: HTMLDivElement) => Promise<void>) => {
+    setExporting(true);
+    // Two frames: one for React to commit, one for the browser to lay out.
+    await new Promise((r) =>
+      requestAnimationFrame(() => requestAnimationFrame(() => r(null))),
+    );
+    try {
+      if (captureRef.current) await shoot(captureRef.current);
+    } finally {
+      setExporting(false);
+    }
+  };
 
-  const exportPdf = useCallback(async () => {
-    if (!captureRef.current) return;
-    outerRef.current?.classList.add("exporting-outer");
-    captureRef.current.classList.add("exporting");
-    const dataUrl = await toPng(captureRef.current, CAPTURE_OPTIONS);
-    captureRef.current.classList.remove("exporting");
-    outerRef.current?.classList.remove("exporting-outer");
+  const exportPng = () =>
+    withExportSheet(async (node) => {
+      const dataUrl = await toPng(node, CAPTURE_OPTIONS);
+      const link = document.createElement("a");
+      link.download = exportFilename;
+      link.href = dataUrl;
+      link.click();
+    });
+
+  const exportPdf = () =>
+    withExportSheet(async (node) => {
+    const dataUrl = await toPng(node, CAPTURE_OPTIONS);
     const img = new Image();
     img.src = dataUrl;
     await new Promise<void>((resolve) => {
@@ -875,7 +960,7 @@ export default function FlavorWheel({ config }: { config?: WheelConfig } = {}) {
     });
     pdf.addImage(dataUrl, "PNG", 0, 0, img.width, img.height);
     pdf.save(exportFilename.replace(".png", ".pdf"));
-  }, []);
+    });
 
   function getSvgCoords(e: React.PointerEvent<SVGSVGElement>) {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -1020,7 +1105,7 @@ export default function FlavorWheel({ config }: { config?: WheelConfig } = {}) {
     return node.color;
   };
 
-  const svgEl = (
+  const renderWheel = (uid: string) => (
     <svg
       width={SVG_SIZE}
       height={SVG_SIZE}
@@ -1037,16 +1122,16 @@ export default function FlavorWheel({ config }: { config?: WheelConfig } = {}) {
       }}
     >
       <defs>
-        <clipPath id="center-logo-clip">
+        <clipPath id={`${uid}-hub-clip`}>
           <circle cx={CX} cy={CY} r={CENTER_R - 2} />
         </clipPath>
         {/* A light sheen from the top-left gives the disc some volume. */}
-        <radialGradient id="wheel-sheen" cx="34%" cy="26%" r="78%">
+        <radialGradient id={`${uid}-sheen`} cx="34%" cy="26%" r="78%">
           <stop offset="0%" stopColor="#ffffff" stopOpacity="0.22" />
           <stop offset="55%" stopColor="#ffffff" stopOpacity="0.04" />
           <stop offset="100%" stopColor="#1a0a00" stopOpacity="0.10" />
         </radialGradient>
-        <radialGradient id="hub-glow" cx="50%" cy="50%" r="50%">
+        <radialGradient id={`${uid}-glow`} cx="50%" cy="50%" r="50%">
           <stop offset="70%" stopColor="#1a0a00" stopOpacity="0.16" />
           <stop offset="100%" stopColor="#1a0a00" stopOpacity="0" />
         </radialGradient>
@@ -1077,7 +1162,7 @@ export default function FlavorWheel({ config }: { config?: WheelConfig } = {}) {
                 opacity: isHovered
                   ? 1
                   : unpicked
-                    ? 0.26
+                    ? 0.45
                     : hovered
                       ? 0.62
                       : 1,
@@ -1163,7 +1248,7 @@ export default function FlavorWheel({ config }: { config?: WheelConfig } = {}) {
                 hovered === seg.node.id
                   ? 1
                   : litPath !== null && !litPath.has(seg.node.id)
-                    ? 0.3
+                    ? 0.4
                     : hovered
                       ? 0.55
                       : 1,
@@ -1227,13 +1312,13 @@ export default function FlavorWheel({ config }: { config?: WheelConfig } = {}) {
         cx={CX}
         cy={CY}
         r={RINGS[RINGS.length - 1].outer}
-        fill="url(#wheel-sheen)"
+        fill={`url(#${uid}-sheen)`}
         pointerEvents="none"
       />
 
       {/* Centre hub, drawn last so its soft shadow falls on the wedges. */}
       <g className="center-logo-group" pointerEvents="none">
-        <circle cx={CX} cy={CY} r={CENTER_R + 14} fill="url(#hub-glow)" />
+        <circle cx={CX} cy={CY} r={CENTER_R + 14} fill={`url(#${uid}-glow)`} />
         <circle cx={CX} cy={CY} r={CENTER_R} fill="#fffdfb" />
         <circle
           cx={CX}
@@ -1250,10 +1335,54 @@ export default function FlavorWheel({ config }: { config?: WheelConfig } = {}) {
           width={(CENTER_R - 16) * 2}
           height={(CENTER_R - 16) * 2}
           preserveAspectRatio="xMidYMid meet"
-          clipPath="url(#center-logo-clip)"
+          clipPath={`url(#${uid}-hub-clip)`}
         />
       </g>
     </svg>
+  );
+
+  const exportButton = (
+    <button
+              onClick={exportPng}
+              title={ui("exportTitle")}
+              className="flex items-center gap-2 text-sm font-semibold transition-all duration-200"
+              style={{
+                backgroundColor: "transparent",
+                color: INK,
+                border: `1.5px solid ${LINE}`,
+                borderRadius: 999,
+                padding: "8px 18px",
+                cursor: "pointer",
+                fontFamily: "Montserrat, sans-serif",
+                letterSpacing: "0.01em",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = INK;
+                e.currentTarget.style.color = ON_INK;
+                e.currentTarget.style.borderColor = INK;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "transparent";
+                e.currentTarget.style.color = INK;
+                e.currentTarget.style.borderColor = LINE;
+              }}
+            >
+              <svg
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              <span>{ui("exportLabel")}</span>
+            </button>
   );
 
   return (
@@ -1266,75 +1395,103 @@ export default function FlavorWheel({ config }: { config?: WheelConfig } = {}) {
       <div className="shrink-0 flex flex-wrap items-center justify-between gap-3 px-4 sm:px-6 pt-5 pb-4">
         <GrainngrainsLogo tagline={ui("tagline")} href="/" />
 
-        {/* Wheel options — full width below on mobile, inline on desktop */}
-        <div className="order-last w-full flex justify-center sm:order-0 sm:w-auto">
+        {/* Wheel tabs sit in the header on large screens; below lg they move
+            into the menu so the bar stays uncluttered. */}
+        <div className="hidden lg:flex lg:justify-center">
           <WheelNav active={activeWheel} />
         </div>
 
         <div className="flex items-center gap-2">
         <button
-          onClick={exportPng}
-          title={ui("exportTitle")}
-          className="flex items-center gap-2 text-sm font-semibold transition-all duration-200"
+          onClick={() => setSearchOpen(true)}
+          title={ui("search")}
+          aria-label={ui("search")}
+          className="flex items-center justify-center transition-all duration-200"
           style={{
             backgroundColor: "transparent",
-            color: "#116e78",
-            border: "1.5px solid #279ba8",
+            color: INK,
+            border: `1.5px solid ${LINE}`,
             borderRadius: 999,
-            padding: "8px 18px",
+            width: 38,
+            height: 38,
             cursor: "pointer",
-            fontFamily: "Montserrat, sans-serif",
-            letterSpacing: "0.01em",
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = "#116e78";
-            e.currentTarget.style.color = "#faf6f2";
-            e.currentTarget.style.borderColor = "#116e78";
+            e.currentTarget.style.backgroundColor = INK;
+            e.currentTarget.style.color = ON_INK;
+            e.currentTarget.style.borderColor = INK;
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.backgroundColor = "transparent";
-            e.currentTarget.style.color = "#116e78";
-            e.currentTarget.style.borderColor = "#279ba8";
+            e.currentTarget.style.color = INK;
+            e.currentTarget.style.borderColor = LINE;
           }}
         >
           <svg
-            width="13"
-            height="13"
+            width="16"
+            height="16"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
-            strokeWidth="2.5"
+            strokeWidth="2.4"
             strokeLinecap="round"
             strokeLinejoin="round"
           >
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-            <polyline points="7 10 12 15 17 10" />
-            <line x1="12" y1="15" x2="12" y2="3" />
+            <circle cx="11" cy="11" r="7" />
+            <line x1="16.5" y1="16.5" x2="21" y2="21" />
           </svg>
-          <span>{ui("exportLabel")}</span>
         </button>
 
-        <LanguageSwitcher />
+        {/* Large screens: everything laid out. */}
+        <div className="hidden lg:flex items-center gap-2">
+          {exportButton}
+          <LanguageSwitcher />
+        </div>
+
+        {/* Below lg: one button that opens a full-height side drawer. */}
+        <div className="lg:hidden">
+          <button
+            onClick={() => setMenuOpen(true)}
+            title={ui("menu")}
+            aria-label={ui("menu")}
+            aria-expanded={menuOpen}
+            aria-haspopup="menu"
+            className="flex items-center justify-center transition-all duration-200"
+            style={{
+              backgroundColor: menuOpen ? INK : "transparent",
+              color: menuOpen ? ON_INK : INK,
+              border: `1.5px solid ${menuOpen ? INK : LINE}`,
+              borderRadius: 999,
+              width: 38,
+              height: 38,
+              cursor: "pointer",
+            }}
+          >
+            <svg
+              width="17"
+              height="17"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.4"
+              strokeLinecap="round"
+            >
+              <line x1="3.5" y1="7" x2="20.5" y2="7" />
+              <line x1="3.5" y1="12" x2="20.5" y2="12" />
+              <line x1="3.5" y1="17" x2="20.5" y2="17" />
+            </svg>
+          </button>
+        </div>
         </div>
       </div>
 
-      {/* ── Capture area ── */}
-      <div
-        ref={captureRef}
-        className="flex flex-col w-full"
-        style={{ background: "#faf6f2" }}
-      >
-        {/* Hidden logo — only visible in exported PNG */}
-        <div style={{ display: "none" }} aria-hidden="true">
-          <GrainngrainsLogo tagline={ui("tagline")} />
-        </div>
-
+      <div className="flex flex-col w-full" style={{ background: "#faf6f2" }}>
         {/* Two-column row: wheel left / results right on md+, stacked on mobile */}
         <div className="flex flex-col md:flex-row md:items-start md:gap-6 w-full">
           {/* ── Wheel — full and centred at every breakpoint ── */}
           <div className="md:flex-1 md:min-w-0">
             <div className="flavor-wheel">
-              <div className="flavor-wheel-stage">{svgEl}</div>
+              <div className="flavor-wheel-stage">{renderWheel("live")}</div>
             </div>
           </div>
 
@@ -1668,6 +1825,115 @@ export default function FlavorWheel({ config }: { config?: WheelConfig } = {}) {
           {ui("footer")}
         </p>
       </div>
+
+      {/* ── Export sheet ───────────────────────────────────────────────────
+          A fixed-width layout of its own, kept off-screen. The picture must
+          not depend on the viewport, so phones and desktops export the very
+          same sheet — never a snapshot of the responsive page. */}
+      {menuOpen && (
+        <div className="drawer-backdrop lg:hidden">
+          <aside className="drawer" role="menu" aria-label={ui("menu")} ref={menuRef}>
+            <div className="drawer-head">
+              <span className="drawer-title">{ui("menu")}</span>
+              <button
+                onClick={() => setMenuOpen(false)}
+                aria-label={ui("menu")}
+                className="drawer-close"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="drawer-body">
+              <div className="drawer-field">
+                <span className="drawer-label">{ui("wheel")}</span>
+                <WheelSelect active={activeWheel} inline />
+              </div>
+
+              <div className="drawer-field">
+                <span className="drawer-label">{ui("language")}</span>
+                <LanguageSwitcher inline />
+              </div>
+
+              <div className="drawer-field">{exportButton}</div>
+            </div>
+          </aside>
+        </div>
+      )}
+
+      {searchOpen && (
+      <FlavorSearch
+        onClose={() => setSearchOpen(false)}
+        items={searchItems}
+        onPick={pickFromSearch}
+        picked={selected}
+      />
+      )}
+
+      {exporting && (
+      <div aria-hidden="true" className="export-sheet-holder">
+        <div ref={captureRef} className="export-sheet">
+          {/* Brand centred, score pinned to the top-right corner. */}
+          <div className="export-brand">
+            <GrainngrainsLogo tagline={ui("exportTagline")} href="/" />
+          </div>
+
+          {score !== null && (
+            <div className="export-score">
+              <div className="export-score-value">
+                <span style={{ color: EXPORT_SCORE_COLOR }}>{score}</span>
+                <span className="export-score-max">/100</span>
+              </div>
+              <span
+                className="export-score-tag"
+                style={{
+                  backgroundColor: scoreColor(score) + "1a",
+                  color: scoreColor(score),
+                  border: `1.5px solid ${scoreColor(score)}40`,
+                }}
+              >
+                {scoreLabel(score, ui)}
+              </span>
+            </div>
+          )}
+
+          <div className="export-wheel">{renderWheel("export")}</div>
+
+          {selected.size > 0 && (
+            <div className="export-panel">
+              <div className="export-notes">
+                  <p className="export-session">
+                    {activeSession?.name?.trim() ||
+                      ui("sessionDefault", { n: "1" })}
+                  </p>
+                  <p className="export-kicker">
+                    {ui("tastingNotes")} &nbsp;·&nbsp; {selected.size}
+                  </p>
+                  <div className="export-tags">
+                    {Array.from(selected).map((id) => (
+                      <span key={id} className="export-tag">
+                        {nameFor(id)}
+                      </span>
+                    ))}
+                  </div>
+              </div>
+
+              {description && (
+                <p className="export-description">
+                  {renderDescription(description)}
+                </p>
+              )}
+            </div>
+          )}
+
+          <p className="export-footer">{ui("footer")}</p>
+        </div>
+      </div>
+      )}
     </div>
   );
 }

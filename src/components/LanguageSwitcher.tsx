@@ -1,17 +1,19 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Link, usePathname } from "@/src/i18n/navigation";
 import { routing, type Locale } from "@/src/i18n/routing";
-import { LOCALE_NAMES } from "@/src/i18n/locales";
+import { LOCALE_FLAGS } from "@/src/i18n/locales";
+import { INK, LINE, ON_INK, PICKED } from "@/src/lib/ui-colors";
 
-const TEAL = "#116e78";
-const TEAL_LIGHT = "#279ba8";
-const CREAM = "#faf6f2";
-
-export function LanguageSwitcher() {
+/** `inline` lays the list out in normal flow — needed inside the side drawer,
+ *  where an absolutely positioned popup would be clipped by the scroll area. */
+export function LanguageSwitcher({ inline = false }: { inline?: boolean }) {
   const current = useLocale() as Locale;
+  // Names are translated into the language in use, so a Spanish reader sees
+  // "Alemán" rather than "Deutsch".
+  const t = useTranslations("languages");
   // Locale-free pathname, so switching language keeps you on the same page.
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -32,52 +34,42 @@ export function LanguageSwitcher() {
   return (
     <div
       ref={ref}
-      className="relative"
+      className={inline ? "w-full" : "relative"}
       style={{ fontFamily: "Montserrat, sans-serif" }}
     >
       <button
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="listbox"
         aria-expanded={open}
-        title={LOCALE_NAMES[current]}
-        className="flex items-center gap-1.5 rounded-full text-sm font-semibold transition-all duration-200"
+        title={t(current)}
+        className={`flex items-center gap-1.5 rounded-full text-sm font-semibold transition-all duration-200${
+          inline ? " w-full justify-between" : ""
+        }`}
         style={{
-          backgroundColor: open ? TEAL : "transparent",
-          color: open ? CREAM : TEAL,
-          border: `1.5px solid ${open ? TEAL : TEAL_LIGHT}`,
+          backgroundColor: open ? INK : "transparent",
+          color: open ? ON_INK : INK,
+          border: `1.5px solid ${open ? INK : LINE}`,
           padding: "8px 14px",
           cursor: "pointer",
           letterSpacing: "0.01em",
         }}
         onMouseEnter={(e) => {
           if (open) return;
-          e.currentTarget.style.backgroundColor = TEAL;
-          e.currentTarget.style.color = CREAM;
-          e.currentTarget.style.borderColor = TEAL;
+          e.currentTarget.style.backgroundColor = INK;
+          e.currentTarget.style.color = ON_INK;
+          e.currentTarget.style.borderColor = INK;
         }}
         onMouseLeave={(e) => {
           if (open) return;
           e.currentTarget.style.backgroundColor = "transparent";
-          e.currentTarget.style.color = TEAL;
-          e.currentTarget.style.borderColor = TEAL_LIGHT;
+          e.currentTarget.style.color = INK;
+          e.currentTarget.style.borderColor = LINE;
         }}
       >
-        {/* globe icon */}
-        <svg
-          width="15"
-          height="15"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <circle cx="12" cy="12" r="9" />
-          <path d="M3 12h18" />
-          <path d="M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18" />
-        </svg>
-        <span>{LOCALE_NAMES[current]}</span>
+        <span aria-hidden style={{ fontSize: 15, lineHeight: 1 }}>
+          {LOCALE_FLAGS[current]}
+        </span>
+        <span>{t(current)}</span>
         <svg
           width="11"
           height="11"
@@ -100,13 +92,13 @@ export function LanguageSwitcher() {
       {open && (
         <ul
           role="listbox"
-          className="absolute right-0 mt-2 z-50"
+          className={inline ? "mt-1.5 w-full" : "absolute right-0 mt-2 z-50"}
           style={{
             backgroundColor: "#ffffff",
             border: "1px solid #ead8c8",
             borderRadius: 14,
             boxShadow: "0 10px 30px rgba(26,10,0,0.10)",
-            minWidth: 168,
+            minWidth: inline ? 0 : 168,
             listStyle: "none",
             padding: 6,
             margin: 0,
@@ -124,9 +116,9 @@ export function LanguageSwitcher() {
                   aria-selected={isActive}
                   className="flex items-center justify-between text-sm font-medium transition-colors duration-150"
                   style={{
-                    color: isActive ? TEAL : "#4a3728",
+                    color: isActive ? INK : "#4a3728",
                     fontWeight: isActive ? 700 : 500,
-                    backgroundColor: isActive ? "#eef7f6" : "transparent",
+                    backgroundColor: isActive ? PICKED : "transparent",
                     borderRadius: 9,
                     padding: "9px 12px",
                     textDecoration: "none",
@@ -140,14 +132,19 @@ export function LanguageSwitcher() {
                       e.currentTarget.style.backgroundColor = "transparent";
                   }}
                 >
-                  <span>{LOCALE_NAMES[loc]}</span>
+                  <span className="flex items-center gap-2">
+                    <span aria-hidden style={{ fontSize: 15, lineHeight: 1 }}>
+                      {LOCALE_FLAGS[loc]}
+                    </span>
+                    {t(loc)}
+                  </span>
                   {isActive && (
                     <svg
                       width="14"
                       height="14"
                       viewBox="0 0 24 24"
                       fill="none"
-                      stroke={TEAL}
+                      stroke={INK}
                       strokeWidth="3"
                       strokeLinecap="round"
                       strokeLinejoin="round"

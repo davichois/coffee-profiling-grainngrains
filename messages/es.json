@@ -9,7 +9,7 @@
     "promptDrag": "Arrastra la rueda para girarla",
     "tastingNotes": "Notas de cata",
     "language": "Idioma",
-    "footer": "© 2026 Grain'N'Grains · Inspirada en la SCA",
+    "footer": "© 2026 Grain & Grains — Café de especialidad · Inspirada en la SCA · Primera rueda de sabores del Perú",
     "blockedTitle": "Acceso bloqueado",
     "blockedMessage": "Si deseas probar la rueda de sabores, compra un café de Grain & Grains para sumergirte en esta aventura.",
     "blockedCta": "Comprar café",
@@ -31,7 +31,14 @@
     "pasteCode": "Pegar código de otra cata",
     "importCode": "Importar",
     "invalidCode": "Código no válido",
-    "readOnly": "solo lectura"
+    "readOnly": "solo lectura",
+    "exportTagline": "Rueda de sabores de café de especialidad",
+    "search": "Buscar",
+    "searchPlaceholder": "Buscar un sabor…",
+    "searchEmpty": "Sin resultados",
+    "searchHint": "↑↓ navegar · ↵ elegir · esc cerrar",
+    "menu": "Menú",
+    "wheel": "Rueda"
   },
   "seo": {
     "homeTitle": "Rueda de Sabores de Grain & Grains | Cata de Café de Especialidad",
@@ -203,5 +210,14 @@
     "petroleum": "petróleo",
     "skunky": "zorrillo",
     "rubber": "goma"
+  },
+  "languages": {
+    "es": "Español",
+    "en": "Inglés",
+    "pt": "Portugués",
+    "fr": "Francés",
+    "de": "Alemán",
+    "zh": "Chino",
+    "ja": "Japonés"
   }
 }

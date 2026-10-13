@@ -86,28 +86,6 @@ body {
     transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* ── Export snapshot ──────────────────────────────────────────────────────── */
-
-/* The session controls are for the app, not for the picture: the exported PNG
-   shows only the tasting's name. */
-.session-export-title {
-  display: none;
-}
-
-.exporting .session-export-title {
-  display: block;
-}
-
-.exporting .session-bar {
-  display: none;
-}
-
-/* The export snapshot must never catch a half-played animation. */
-.exporting .wedge,
-.exporting .wedge-label {
-  animation: none !important;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .wedge,
   .wedge-label {
@@ -152,15 +130,411 @@ body {
     filter: none;
   }
 
-  /* ── Exports always capture the whole wheel ── */
-  .exporting .flavor-wheel-stage {
-    aspect-ratio: auto;
-    overflow: visible;
+}
+
+/* ── Export sheet ───────────────────────────────────────────────────────────
+   Its own fixed-width layout, parked off-screen. Everything is in absolute
+   px and never consults a breakpoint, so the PNG a phone produces is byte-for
+   byte the same layout a desktop produces. */
+.export-sheet-holder {
+  position: fixed;
+  top: 0;
+  left: -20000px;
+  width: 1000px;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* A square sheet: 1000 CSS px captured at 2× gives a 2000×2000 PNG. */
+.export-sheet {
+  width: 1000px;
+  height: 1000px;
+  background: var(--background);
+  padding: 34px 46px 20px;
+  position: relative;
+  font-family: var(--font-montserrat), Montserrat, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* Whatever the tasting holds, the sheet stays exactly square. */
+  overflow: hidden;
+}
+
+/* Brand centred at the top; the logo component stacks left-aligned by
+   default, so it is centred here. */
+.export-brand {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
+.export-brand > a {
+  align-items: center;
+  text-align: center;
+}
+
+/* The score sits in the corner, out of the centred brand's way. */
+.export-score {
+  position: absolute;
+  top: 34px;
+  right: 46px;
+}
+
+/* The wheel takes whatever height the header, panel and footer leave over, so
+   the sheet always comes out exactly square no matter how long the tasting
+   description runs. */
+.export-wheel {
+  flex: 1;
+  min-height: 240px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Drawn whole here — never the cropped mobile window. */
+.export-wheel > svg {
+  display: block;
+  height: 100%;
+  width: auto;
+  max-width: 100%;
+  max-height: 100%;
+  filter: drop-shadow(0 14px 30px rgba(26, 10, 0, 0.13));
+}
+
+/* Animations must never be caught mid-flight by the snapshot. */
+.export-sheet .wedge,
+.export-sheet .wedge-label {
+  animation: none !important;
+  transition: none !important;
+}
+
+.export-panel {
+  width: 100%;
+  flex-shrink: 0;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #ead8c8;
+}
+
+.export-notes {
+  flex: 1;
+  min-width: 0;
+}
+
+.export-session {
+  margin: 0 0 6px;
+  font-size: 19px;
+  font-weight: 700;
+  color: #1a0a00;
+  letter-spacing: -0.01em;
+}
+
+.export-kicker {
+  margin: 0 0 9px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #b0a090;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
+.export-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.export-tag {
+  background: #1a0a00;
+  color: #faf6f2;
+  border-radius: 999px;
+  padding: 5px 13px;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.export-score {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.export-score-value {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  font-size: 104px;
+  font-weight: 800;
+  line-height: 0.88;
+  letter-spacing: -0.045em;
+}
+
+.export-score-max {
+  font-size: 22px;
+  font-weight: 700;
+  color: #b0a090;
+  letter-spacing: -0.01em;
+}
+
+.export-score-tag {
+  border-radius: 999px;
+  padding: 6px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.export-description {
+  margin: 12px 0 0;
+  font-size: 13px;
+  line-height: 1.7;
+  color: #4a3728;
+  /* Safety valve for an unusually long tasting: the sheet must stay square. */
+  max-height: 160px;
+  overflow: hidden;
+}
+
+.export-footer {
+  flex-shrink: 0;
+  margin: 16px 0 0;
+  font-size: 11px;
+  color: #c4b4a4;
+  letter-spacing: 0.04em;
+  text-align: center;
+}
+
+/* ── Flavor search ──────────────────────────────────────────────────────────
+   A Spotlight-style panel: it floats over the page, takes the keyboard and
+   finds any descriptor without hunting around the wheel. */
+@keyframes search-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.985);
+  }
+  to {
+    opacity: 1;
     transform: none;
   }
+}
 
-  .exporting .flavor-wheel-stage > svg {
-    width: 100%;
-    margin-left: 0;
+.flavor-search-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 14vh 16px 16px;
+  background: rgba(26, 10, 0, 0.28);
+  backdrop-filter: blur(3px);
+}
+
+.flavor-search {
+  width: 100%;
+  max-width: 520px;
+  background: #fffdfb;
+  border: 1px solid #ead8c8;
+  border-radius: 16px;
+  box-shadow: 0 24px 60px rgba(26, 10, 0, 0.26);
+  overflow: hidden;
+  font-family: var(--font-montserrat), Montserrat, sans-serif;
+  animation: search-in 160ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.flavor-search-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 16px;
+  border-bottom: 1px solid #f0e3d6;
+  color: #8a7360;
+}
+
+.flavor-search-field input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: none;
+  font-size: 16px; /* 16px keeps iOS from zooming the page on focus */
+  font-weight: 500;
+  color: #1a0a00;
+  font-family: inherit;
+}
+
+.flavor-search-list {
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+  max-height: 46vh;
+  overflow-y: auto;
+}
+
+.flavor-search-row {
+  width: 100%;
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  padding: 9px 11px;
+  border: none;
+  border-radius: 9px;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  color: #1a0a00;
+  font-family: inherit;
+}
+
+.flavor-search-row.is-active {
+  background: #1a0a00;
+  color: #fffdfb;
+}
+
+.flavor-search-name {
+  font-size: 13.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.flavor-search-trail {
+  flex: 1;
+  min-width: 0;
+  font-size: 11.5px;
+  opacity: 0.6;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.flavor-search-empty,
+.flavor-search-hint {
+  margin: 0;
+  color: #b0a090;
+  font-size: 11.5px;
+}
+
+.flavor-search-empty {
+  padding: 22px 16px;
+  text-align: center;
+}
+
+.flavor-search-hint {
+  padding: 9px 16px;
+  border-top: 1px solid #f0e3d6;
+  font-size: 10.5px;
+  letter-spacing: 0.02em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flavor-search {
+    animation: none;
+  }
+}
+
+
+/* ── Header menu (below lg) ─────────────────────────────────────────────────
+   A full-screen sheet on phones and tablets, with the controls centred. The
+   wheel behind it is busy, so the panel is opaque rather than translucent. */
+@keyframes menu-in {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: var(--background);
+  animation: menu-in 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.drawer {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-montserrat), Montserrat, sans-serif;
+}
+
+.drawer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  padding: 18px 20px;
+}
+
+.drawer-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #b0a090;
+}
+
+.drawer-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border: 1.5px solid #d8d2cb;
+  border-radius: 999px;
+  background: none;
+  color: #2e2b28;
+  cursor: pointer;
+}
+
+/* The controls sit in the middle of the screen. */
+.drawer-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 24px;
+  padding: 24px 24px 72px;
+}
+
+.drawer-field {
+  width: 100%;
+  max-width: 300px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.drawer-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #b0a090;
+  text-align: center;
+}
+
+/* Export stretches like the combo boxes so the stack reads as one column. */
+.drawer-field > button {
+  width: 100%;
+  justify-content: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drawer-backdrop {
+    animation: none;
   }
 }
