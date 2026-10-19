@@ -23,6 +23,12 @@ export const BRAND_ALIASES = [
 
 export const TWITTER_HANDLE = "@grainngrains";
 
+/** Where to buy the coffee. The shop answers on every locale we support, so
+ *  the link follows the language the visitor is reading in. */
+export function productsUrl(locale: string): string {
+  return `https://grainngrains.org/${locale}/our-coffee/products`;
+}
+
 // Official brand profiles (from grainngrains.org) — used for JSON-LD sameAs.
 export const BRAND_SOCIALS = [
   "https://www.instagram.com/grainngrains",

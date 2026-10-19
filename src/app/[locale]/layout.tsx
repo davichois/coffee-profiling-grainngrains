@@ -12,8 +12,6 @@ import {
   TWITTER_HANDLE,
   GOOGLE_SITE_VERIFICATION,
 } from "@/src/lib/site";
-import { ACCESS_BLOCKED } from "@/src/lib/access";
-import { AccessBlocked } from "@/src/components/AccessBlocked";
 import { BrandJsonLd } from "@/src/components/BrandJsonLd";
 
 const montserrat = Montserrat({
@@ -102,7 +100,7 @@ export default async function RootLayout({
       <body className="min-h-full flex flex-col">
         <BrandJsonLd locale={locale} />
         <NextIntlClientProvider messages={messages}>
-          {ACCESS_BLOCKED ? <AccessBlocked /> : children}
+          {children}
         </NextIntlClientProvider>
       </body>
     </html>

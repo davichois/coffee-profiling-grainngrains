@@ -538,3 +538,279 @@ body {
     animation: none;
   }
 }
+
+/* ── Code gate ──────────────────────────────────────────────────────────────
+   The door: the wheel is only reachable with a traceability code. */
+
+/* ── Code field ─────────────────────────────────────────────────────────────
+   "GG" is constant so it is printed, not typed; the six slots that follow are
+   driven by one real input underneath, which keeps paste, backspace and the
+   mobile keyboard working as people expect. */
+.code-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(9px, 3vw, 16px);
+  width: 100%;
+  margin-top: clamp(18px, 5vw, 26px);
+  cursor: text;
+}
+
+.code-prefix {
+  font-size: clamp(28px, 9vw, 42px);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  color: #6f6f6f;
+  user-select: none;
+}
+
+.code-slots {
+  display: flex;
+  gap: clamp(5px, 1.8vw, 10px);
+}
+
+.code-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(7px, 2.5vw, 11px);
+  width: clamp(26px, 9vw, 38px);
+}
+
+.code-char {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: clamp(22px, 7vw, 30px);
+  font-size: clamp(18px, 6vw, 25px);
+  font-weight: 700;
+  line-height: 1;
+  color: #4a4a4a;
+}
+
+.code-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #c4c4c4;
+}
+
+.code-rule {
+  width: 100%;
+  height: 3px;
+  border-radius: 2px;
+  background: #dcdcdc;
+  transition: background 160ms ease;
+}
+
+.code-slot.is-active .code-rule {
+  background: #2e2b28;
+}
+
+.code-field.is-failed .code-rule {
+  background: #e0a0a0;
+}
+
+/* The real field sits invisibly over the slots so the caret never shows. */
+.code-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  opacity: 0;
+  border: none;
+  background: none;
+  font-size: 16px; /* 16px stops iOS zooming the page on focus */
+  cursor: text;
+}
+
+
+/* ── Language bar on the door ───────────────────────────────────────────────
+   Codes rather than names: seven of them have to fit a narrow phone. */
+.locale-icon {
+  color: #6b655f;
+  flex-shrink: 0;
+}
+
+.locale-code {
+  font-size: clamp(12px, 3.4vw, 14px);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #6b655f;
+  text-decoration: none;
+  padding-bottom: 6px;
+  border-bottom: 3px solid transparent;
+  transition:
+    color 160ms ease,
+    border-color 160ms ease;
+}
+
+.locale-code:hover {
+  color: #2e2b28;
+}
+
+/* Same ink the rest of the app uses for controls — see src/lib/ui-colors.ts */
+.locale-code.is-active {
+  color: #2e2b28;
+  border-bottom-color: #2e2b28;
+}
+
+/* ── Footer on the door ─────────────────────────────────────────────────────
+   Who made the wheel, and where to buy the coffee it describes. */
+/* On a short screen the door stops floating things over the form. */
+@media (max-height: 640px) {
+  .gate {
+    justify-content: flex-start;
+    padding-top: 68px;
+  }
+
+  .gate-footer,
+  .locale-bar {
+    position: static;
+    transform: none;
+    margin-top: 24px;
+  }
+
+  .locale-bar {
+    order: -1;
+    margin: 0 0 20px;
+  }
+}
+
+/* ── The door ───────────────────────────────────────────────────────────────
+   One column in normal flow: language, then the code, then — for whoever has
+   no code yet — the coffee that carries one. Nothing is absolutely placed, so
+   the three blocks never collide on a short screen. */
+.gate {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: clamp(18px, 5vw, 30px) clamp(16px, 5vw, 32px)
+    clamp(20px, 4vw, 30px);
+  background: var(--background);
+  font-family: var(--font-montserrat), Montserrat, sans-serif;
+}
+
+.locale-bar {
+  display: flex;
+  align-items: center;
+  gap: clamp(8px, 2.6vw, 16px);
+  max-width: 100%;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* Takes the slack so the card sits optically centred, footer pinned below. */
+.gate-main {
+  flex: 1;
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  text-align: center;
+  padding: clamp(24px, 6vw, 40px) 0;
+}
+
+.gate-card {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.gate-title {
+  margin: clamp(12px, 3.5vw, 18px) 0 0;
+  font-size: clamp(18px, 5.2vw, 22px);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #1a0a00;
+}
+
+.gate-intro {
+  margin: 7px 0 0;
+  font-size: clamp(12.5px, 3.5vw, 13.5px);
+  line-height: 1.6;
+  color: #6b655f;
+}
+
+.gate-status {
+  margin: 14px 0 0;
+  min-height: 17px;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+/* A hairline rule with the word sitting in the gap. */
+.gate-or {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: clamp(22px, 6vw, 32px) 0 clamp(18px, 5vw, 24px);
+  color: #b0a090;
+}
+
+.gate-or::before,
+.gate-or::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #e8ddd2;
+}
+
+.gate-or span {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.gate-nocode {
+  margin: 0 0 12px;
+  font-size: clamp(13px, 3.7vw, 14.5px);
+  font-weight: 600;
+  color: #1a0a00;
+}
+
+/* The purchase is the point of the page, so it carries the solid fill. */
+.gate-shop {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 13px 24px;
+  border: 1.5px solid #2e2b28;
+  border-radius: 999px;
+  background: #2e2b28;
+  font-size: clamp(13px, 3.6vw, 14px);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: #fffdfb;
+  text-decoration: none;
+  transition:
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 180ms ease;
+  box-shadow: 0 2px 10px rgba(26, 10, 0, 0.14);
+}
+
+.gate-shop:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(26, 10, 0, 0.2);
+}
+
+.gate-footer {
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+}
+
+.gate-claim {
+  margin: 0;
+  font-size: clamp(11px, 3vw, 12px);
+  line-height: 1.6;
+  color: #a79b8e;
+}

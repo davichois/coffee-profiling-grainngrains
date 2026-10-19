@@ -1,8 +1,6 @@
 {
   "ui": {
     "tagline": "Roue des saveurs",
-    "navSca": "Roue SCA",
-    "navPeru": "Roue Pérou",
     "exportLabel": "Exporter",
     "exportTitle": "Exporter en PNG",
     "promptExplore": "Touchez un segment pour explorer",
@@ -10,9 +8,6 @@
     "tastingNotes": "Notes de dégustation",
     "language": "Langue",
     "footer": "© 2026 Grain & Grains — Café de spécialité · Inspirée de la SCA · Première roue des saveurs du Pérou",
-    "blockedTitle": "Accès bloqué",
-    "blockedMessage": "Si vous souhaitez essayer la roue des saveurs, achetez un café Grain & Grains pour plonger dans cette aventure.",
-    "blockedCta": "Acheter du café",
     "scoreExceptional": "Exceptionnel",
     "scoreExcellent": "Excellent",
     "scoreVeryGood": "Très Bon",
@@ -25,7 +20,7 @@
     "renameSession": "Renommer la session",
     "deleteSession": "Supprimer la session",
     "mySessions": "Mes dégustations",
-    "sharedSessions": "Dégustations partagées",
+    "sharedSessions": "Dégustation partagée",
     "copyCode": "Copier le code",
     "codeCopied": "Code copié",
     "pasteCode": "Coller le code d'une autre dégustation",
@@ -38,7 +33,19 @@
     "searchEmpty": "Aucun résultat",
     "searchHint": "↑↓ naviguer · ↵ choisir · échap fermer",
     "menu": "Menu",
-    "wheel": "Roue"
+    "gateTitle": "Saisissez votre code de traçabilité",
+    "gateIntro": "Chaque sachet Grain & Grains porte le code de son lot.",
+    "gatePlaceholder": "Code du lot",
+    "gateSubmit": "Entrer",
+    "gateChecking": "Vérification…",
+    "gateInvalid": "Code non valide ou pas encore publié",
+    "lotScore": "Note de dégustation",
+    "lotSession": "Lot {code}",
+    "lotApprox": "env.",
+    "footerClaim": "La première roue des saveurs péruvienne, créée par Grain & Grains.",
+    "buyCoffee": "Achetez notre café",
+    "noCodeYet": "Vous n'avez pas encore votre code ?",
+    "orSeparator": "ou"
   },
   "seo": {
     "homeTitle": "Roue des Saveurs Grain & Grains | Dégustation de Café de Spécialité",

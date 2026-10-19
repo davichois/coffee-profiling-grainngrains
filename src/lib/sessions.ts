@@ -1,9 +1,12 @@
 // ─── Evaluation sessions ─────────────────────────────────────────────────────
-// Up to two independent tasting records per wheel. They live in the browser so
-// they survive a reload, and they also encode into the URL so a link carries
-// the whole evaluation — the site is static, so there is no server to store it.
+// Up to two independent tasting records per wheel, plus one shared tasting —
+// whichever code was used last. They live in the browser so they survive a
+// reload, and they also encode into the URL so a link carries the whole
+// evaluation — the site is static, so there is no server to store it.
 
 export const MAX_SESSIONS = 2;
+/** Only one shared tasting at a time: a new code replaces the previous one. */
+export const MAX_SHARED = 1;
 export const MAX_NAME_LENGTH = 40;
 /** Guard against an enormous crafted link; no real tasting selects this many. */
 const MAX_SELECTED = 300;
@@ -13,6 +16,14 @@ export interface Session {
   name: string;
   selected: string[];
   createdAt: string;
+  /** Lot code, when the session came from a traceability code. */
+  lotCode?: string;
+  /** The cupping's own score. It must be shown verbatim — the wheel's own
+   *  tally of the selected descriptors would not reproduce it. */
+  officialScore?: number | null;
+  grade?: string | null;
+  /** Descriptors the cupping recorded that the wheel could not place. */
+  unmatched?: string[];
 }
 
 export type WheelKey = "sca" | "peru";
@@ -96,10 +107,15 @@ export function decodeSession(
   };
 }
 
-/** Same validation for whatever we read back out of localStorage. */
+/**
+ * Same validation for whatever we read back out of localStorage. `limit` is
+ * the shelf's capacity: a shelf written before the cap changed is trimmed
+ * here, so an old pair of shared tastings reads back as one.
+ */
 export function parseStored(
   text: string | null,
   validIds: Set<string>,
+  limit: number = MAX_SESSIONS,
 ): Session[] | null {
   if (!text) return null;
   let parsed: unknown;
@@ -110,7 +126,7 @@ export function parseStored(
   }
   if (!Array.isArray(parsed)) return null;
   const out: Session[] = [];
-  for (const raw of parsed.slice(0, MAX_SESSIONS)) {
+  for (const raw of parsed.slice(0, limit)) {
     if (typeof raw !== "object" || raw === null) continue;
     const rec = raw as Record<string, unknown>;
     out.push({
@@ -127,6 +143,18 @@ export function parseStored(
         typeof rec.createdAt === "string"
           ? rec.createdAt
           : new Date().toISOString(),
+      ...(typeof rec.lotCode === "string" ? { lotCode: rec.lotCode } : {}),
+      ...(typeof rec.officialScore === "number"
+        ? { officialScore: rec.officialScore }
+        : {}),
+      ...(typeof rec.grade === "string" ? { grade: rec.grade } : {}),
+      ...(Array.isArray(rec.unmatched)
+        ? {
+            unmatched: rec.unmatched.filter(
+              (u: unknown): u is string => typeof u === "string",
+            ),
+          }
+        : {}),
     });
   }
   return out.length > 0 ? out : null;

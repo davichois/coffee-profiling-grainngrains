@@ -1,8 +1,6 @@
 {
   "ui": {
     "tagline": "风味轮",
-    "navSca": "SCA 风味轮",
-    "navPeru": "秘鲁风味轮",
     "exportLabel": "导出",
     "exportTitle": "导出为 PNG",
     "promptExplore": "点击一个区块开始探索",
@@ -10,9 +8,6 @@
     "tastingNotes": "品鉴笔记",
     "language": "语言",
     "footer": "© 2026 Grain & Grains — 精品咖啡 · 灵感源自 SCA · 秘鲁首个风味轮",
-    "blockedTitle": "访问已锁定",
-    "blockedMessage": "如果你想体验风味轮，请购买一份 Grain & Grains 咖啡，投入这场冒险。",
-    "blockedCta": "购买咖啡",
     "scoreExceptional": "卓越",
     "scoreExcellent": "优秀",
     "scoreVeryGood": "很好",
@@ -38,7 +33,19 @@
     "searchEmpty": "无结果",
     "searchHint": "↑↓ 导航 · ↵ 选择 · esc 关闭",
     "menu": "菜单",
-    "wheel": "风味轮"
+    "gateTitle": "请输入你的溯源代码",
+    "gateIntro": "每包 Grain & Grains 咖啡都印有其批次代码。",
+    "gatePlaceholder": "批次代码",
+    "gateSubmit": "进入",
+    "gateChecking": "验证中…",
+    "gateInvalid": "代码无效或尚未发布",
+    "lotScore": "杯测分数",
+    "lotSession": "批次 {code}",
+    "lotApprox": "约",
+    "footerClaim": "首个秘鲁咖啡风味轮，由 Grain & Grains 创建。",
+    "buyCoffee": "购买我们的咖啡",
+    "noCodeYet": "还没有你的代码？",
+    "orSeparator": "或"
   },
   "seo": {
     "homeTitle": "Grain & Grains 咖啡风味轮 | 精品咖啡品鉴",

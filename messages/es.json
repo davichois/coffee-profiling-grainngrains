@@ -1,8 +1,6 @@
 {
   "ui": {
     "tagline": "Rueda de sabores",
-    "navSca": "Rueda SCA",
-    "navPeru": "Rueda Perú",
     "exportLabel": "Exportar",
     "exportTitle": "Exportar como PNG",
     "promptExplore": "Toca un segmento para explorar",
@@ -10,9 +8,6 @@
     "tastingNotes": "Notas de cata",
     "language": "Idioma",
     "footer": "© 2026 Grain & Grains — Café de especialidad · Inspirada en la SCA · Primera rueda de sabores del Perú",
-    "blockedTitle": "Acceso bloqueado",
-    "blockedMessage": "Si deseas probar la rueda de sabores, compra un café de Grain & Grains para sumergirte en esta aventura.",
-    "blockedCta": "Comprar café",
     "scoreExceptional": "Excepcional",
     "scoreExcellent": "Excelente",
     "scoreVeryGood": "Muy Bueno",
@@ -25,7 +20,7 @@
     "renameSession": "Renombrar sesión",
     "deleteSession": "Eliminar sesión",
     "mySessions": "Mis catas",
-    "sharedSessions": "Catas compartidas",
+    "sharedSessions": "Cata compartida",
     "copyCode": "Copiar código",
     "codeCopied": "Código copiado",
     "pasteCode": "Pegar código de otra cata",
@@ -38,7 +33,19 @@
     "searchEmpty": "Sin resultados",
     "searchHint": "↑↓ navegar · ↵ elegir · esc cerrar",
     "menu": "Menú",
-    "wheel": "Rueda"
+    "gateTitle": "Ingresa tu código de trazabilidad",
+    "gateIntro": "Cada bolsa de Grain & Grains trae el código de su lote.",
+    "gatePlaceholder": "Código del lote",
+    "gateSubmit": "Entrar",
+    "gateChecking": "Verificando…",
+    "gateInvalid": "Código no válido o aún no publicado",
+    "lotScore": "Puntaje de cata",
+    "lotSession": "Lote {code}",
+    "lotApprox": "aprox.",
+    "footerClaim": "La primera rueda de sabores peruana, creada por Grain & Grains.",
+    "buyCoffee": "Compra nuestro café",
+    "noCodeYet": "¿Aún no tienes tu código?",
+    "orSeparator": "o"
   },
   "seo": {
     "homeTitle": "Rueda de Sabores de Grain & Grains | Cata de Café de Especialidad",

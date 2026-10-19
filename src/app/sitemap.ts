@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { routing } from "@/src/i18n/routing";
 import { SITE_URL } from "@/src/lib/site";
 
+// Only the door is listed: a lot's page is private to whoever holds the code.
 // hreflang alternates for a path so Google links the translated versions.
 function languagesFor(path: string): Record<string, string> {
   const languages: Record<string, string> = {};
@@ -19,13 +20,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly",
       priority: 1,
       alternates: { languages: languagesFor("") },
-    });
-    entries.push({
-      url: `${SITE_URL}/${loc}/peru`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.8,
-      alternates: { languages: languagesFor("/peru") },
     });
   }
   return entries;

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { hasLocale } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import FlavorWheel from "@/src/components/FlavorWheel";
+import { CodeEntry } from "@/src/components/CodeEntry";
 import { routing } from "@/src/i18n/routing";
 import { OG_LOCALE } from "@/src/i18n/locales";
 import { buildAlternates, withBrandKeywords } from "@/src/i18n/seo";
@@ -36,16 +36,9 @@ export async function generateMetadata({
   };
 }
 
+/** The door. Nothing else lives at the root. */
 export default async function Home({ params }: PageProps<"/[locale]">) {
   const { locale } = await params;
   setRequestLocale(locale);
-
-  return (
-    <main
-      className="min-h-screen flex flex-col items-center"
-      style={{ background: "#faf6f2" }}
-    >
-      <FlavorWheel config={{ active: "sca" }} />
-    </main>
-  );
+  return <CodeEntry />;
 }

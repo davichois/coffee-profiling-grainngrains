@@ -5,18 +5,20 @@ import { flavorWheelData, FlavorNode } from "@/src/data/flavorWheel";
 import { toPng } from "html-to-image";
 import jsPDF from "jspdf";
 import { GrainngrainsLogo } from "./GrainngrainsLogo";
-import { WheelNav } from "./WheelNav";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { FlavorSearch, type SearchItem } from "./FlavorSearch";
-import { WheelSelect } from "./WheelSelect";
 import { INK, LINE, ON_INK } from "@/src/lib/ui-colors";
+import type { Lot } from "@/src/lib/traceability";
+import { matchDescriptors } from "@/src/lib/matchDescriptors";
 import { useTranslations } from "next-intl";
 import { buildDescription, findMainCat } from "@/src/i18n/describe";
 import {
   MAX_SESSIONS,
+  MAX_SHARED,
   MAX_NAME_LENGTH,
   type Session,
   createSession,
+  newSessionId,
   encodeSession,
   decodeSession,
   parseStored,
@@ -631,6 +633,8 @@ export interface WheelConfig {
   flavorNamesEs?: Record<string, string>;
   exportFilename?: string;
   active?: "sca" | "peru";
+  /** Resolved on the server from the traceability code in the route. */
+  lot?: Lot;
 }
 
 // ─── component ───────────────────────────────────────────────────────────────
@@ -641,6 +645,7 @@ export default function FlavorWheel({ config }: { config?: WheelConfig } = {}) {
   const namesEs = config?.flavorNamesEs ?? FLAVOR_NAMES_ES;
   const exportFilename = config?.exportFilename ?? "perfil-cafe.png";
   const activeWheel = config?.active ?? "sca";
+  const lot = config?.lot;
   const ui = useTranslations("ui");
   const tFlavors = useTranslations("flavors");
   const tFlavorNames = useTranslations("flavorNames");
@@ -786,6 +791,7 @@ export default function FlavorWheel({ config }: { config?: WheelConfig } = {}) {
         return parseStored(
           localStorage.getItem(storageKey(activeWheel, shelf)),
           validIds,
+          shelf === "own" ? MAX_SESSIONS : MAX_SHARED,
         );
       } catch {
         return null;
@@ -794,7 +800,7 @@ export default function FlavorWheel({ config }: { config?: WheelConfig } = {}) {
 
     const mine = read("own") ?? [createSession("")];
     setOwn(mine.slice(0, MAX_SESSIONS));
-    setShared((read("shared") ?? []).slice(0, MAX_SESSIONS));
+    setShared((read("shared") ?? []).slice(0, MAX_SHARED));
     setActive({ shelf: "own", id: mine[0].id });
   }, [validIds, activeWheel]);
 
@@ -846,6 +852,44 @@ export default function FlavorWheel({ config }: { config?: WheelConfig } = {}) {
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [menuOpen]);
+
+  // The lot's cupping arrives as a read-only tasting: its descriptors ticked
+  // on the wheel, its own score shown as is.
+  useEffect(() => {
+    if (!lot) return;
+    // Deferred by a microtask: the work below is derived from a prop, and
+    // setting it synchronously inside the effect cascades a second render.
+    const build = () => {
+    const matches = matchDescriptors(lot.descriptors, wheelData);
+    const picked = matches
+      .filter((m) => m.id && !m.isFamily)
+      .map((m) => m.id as string);
+    const families = matches
+      .filter((m) => m.isFamily && m.id)
+      .map((m) => m.id as string);
+    const unmatched = matches
+      .filter((m) => m.kind === "none")
+      .map((m) => m.original);
+
+    const session: Session = {
+      id: newSessionId(),
+      name: [lot.code, lot.farm].filter(Boolean).join(" · "),
+      selected: picked,
+      createdAt: new Date().toISOString(),
+      lotCode: lot.code,
+      officialScore: lot.score,
+      grade: lot.grade,
+      unmatched,
+    };
+    // One shared tasting only: this code's cupping takes the shelf, whatever
+    // code was there before is gone.
+    setShared([session]);
+    setActive({ shelf: "shared", id: session.id });
+    // Reveal any family the cupping named but that has no single leaf.
+    if (families.length) setOpenIds((prev) => new Set([...prev, ...families]));
+    };
+    queueMicrotask(build);
+  }, [lot, wheelData]);
 
   // ⌘K / Ctrl+K opens the search, the way a launcher does.
   useEffect(() => {
@@ -911,13 +955,14 @@ export default function FlavorWheel({ config }: { config?: WheelConfig } = {}) {
   };
 
   const importCode = () => {
-    if (shared.length >= MAX_SESSIONS) return;
     const parsed = decodeSession(codeInput, validIds);
     if (!parsed) {
       flash("invalid");
       return;
     }
-    setShared((prev) => [...prev, parsed].slice(0, MAX_SESSIONS));
+    // Same rule as a traceability code: a pasted tasting replaces whatever is
+    // on the shared shelf, so there is never more than one.
+    setShared([parsed]);
     setActive({ shelf: "shared", id: parsed.id });
     setCodeInput("");
   };
@@ -1074,7 +1119,10 @@ export default function FlavorWheel({ config }: { config?: WheelConfig } = {}) {
   );
 
   const segments = buildDynamicSegments(wheelData, openIds);
-  const score = computeScore(selected, wheelData, scores);
+  // A lot carries the score its cupping gave it; only a tasting built here is
+  // scored from the wheel.
+  const score =
+    activeSession?.officialScore ?? computeScore(selected, wheelData, scores);
   const description =
     score !== null
       ? buildDescription(
@@ -1395,12 +1443,6 @@ export default function FlavorWheel({ config }: { config?: WheelConfig } = {}) {
       <div className="shrink-0 flex flex-wrap items-center justify-between gap-3 px-4 sm:px-6 pt-5 pb-4">
         <GrainngrainsLogo tagline={ui("tagline")} href="/" />
 
-        {/* Wheel tabs sit in the header on large screens; below lg they move
-            into the menu so the bar stays uncluttered. */}
-        <div className="hidden lg:flex lg:justify-center">
-          <WheelNav active={activeWheel} />
-        </div>
-
         <div className="flex items-center gap-2">
         <button
           onClick={() => setSearchOpen(true)}
@@ -1606,13 +1648,10 @@ export default function FlavorWheel({ config }: { config?: WheelConfig } = {}) {
                       </span>
                     </span>
 
-                    {shared.map((s, idx) => (
+                    {shared.map((s) => (
                       <SessionRow
                         key={s.id}
-                        label={
-                          s.name.trim() ||
-                          ui("sessionDefault", { n: String(idx + 1) })
-                        }
+                        label={s.name.trim() || ui("sessionDefault", { n: "1" })}
                         count={s.selected.length}
                         active={activeSession?.id === s.id}
                         shared
@@ -1622,46 +1661,45 @@ export default function FlavorWheel({ config }: { config?: WheelConfig } = {}) {
                       />
                     ))}
 
-                    {shared.length < MAX_SESSIONS && (
-                      <div className="flex gap-1">
-                        <input
-                          value={codeInput}
-                          onChange={(e) => setCodeInput(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") importCode();
-                          }}
-                          placeholder={ui("pasteCode")}
-                          style={{
-                            flex: 1,
-                            minWidth: 0,
-                            border: `1.5px solid ${notice === "invalid" ? "#C62828" : "#e0cdbb"}`,
-                            borderRadius: 9,
-                            padding: "5px 10px",
-                            fontSize: 11.5,
-                            fontFamily: "Montserrat, sans-serif",
-                            outline: "none",
-                          }}
-                        />
-                        <button
-                          onClick={importCode}
-                          disabled={codeInput.trim() === ""}
-                          style={{
-                            backgroundColor: codeInput.trim() ? "#1a0a00" : "transparent",
-                            color: codeInput.trim() ? "#faf6f2" : "#c4b4a4",
-                            border: `1.5px solid ${codeInput.trim() ? "#1a0a00" : "#e0cdbb"}`,
-                            borderRadius: 9,
-                            padding: "5px 11px",
-                            fontSize: 11.5,
-                            fontWeight: 700,
-                            cursor: codeInput.trim() ? "pointer" : "default",
-                            fontFamily: "Montserrat, sans-serif",
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          {ui("importCode")}
-                        </button>
-                      </div>
-                    )}
+                    {/* Always offered: pasting replaces the one shared slot. */}
+                    <div className="flex gap-1">
+                      <input
+                        value={codeInput}
+                        onChange={(e) => setCodeInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") importCode();
+                        }}
+                        placeholder={ui("pasteCode")}
+                        style={{
+                          flex: 1,
+                          minWidth: 0,
+                          border: `1.5px solid ${notice === "invalid" ? "#C62828" : "#e0cdbb"}`,
+                          borderRadius: 9,
+                          padding: "5px 10px",
+                          fontSize: 11.5,
+                          fontFamily: "Montserrat, sans-serif",
+                          outline: "none",
+                        }}
+                      />
+                      <button
+                        onClick={importCode}
+                        disabled={codeInput.trim() === ""}
+                        style={{
+                          backgroundColor: codeInput.trim() ? "#1a0a00" : "transparent",
+                          color: codeInput.trim() ? "#faf6f2" : "#c4b4a4",
+                          border: `1.5px solid ${codeInput.trim() ? "#1a0a00" : "#e0cdbb"}`,
+                          borderRadius: 9,
+                          padding: "5px 11px",
+                          fontSize: 11.5,
+                          fontWeight: 700,
+                          cursor: codeInput.trim() ? "pointer" : "default",
+                          fontFamily: "Montserrat, sans-serif",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {ui("importCode")}
+                      </button>
+                    </div>
 
                     {notice && (
                       <span
@@ -1849,11 +1887,6 @@ export default function FlavorWheel({ config }: { config?: WheelConfig } = {}) {
             </div>
 
             <div className="drawer-body">
-              <div className="drawer-field">
-                <span className="drawer-label">{ui("wheel")}</span>
-                <WheelSelect active={activeWheel} inline />
-              </div>
-
               <div className="drawer-field">
                 <span className="drawer-label">{ui("language")}</span>
                 <LanguageSwitcher inline />

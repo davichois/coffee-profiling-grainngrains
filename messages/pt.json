@@ -1,8 +1,6 @@
 {
   "ui": {
     "tagline": "Roda de sabores",
-    "navSca": "Roda SCA",
-    "navPeru": "Roda Peru",
     "exportLabel": "Exportar",
     "exportTitle": "Exportar como PNG",
     "promptExplore": "Toque num segmento para explorar",
@@ -10,9 +8,6 @@
     "tastingNotes": "Notas de prova",
     "language": "Idioma",
     "footer": "© 2026 Grain & Grains — Café especial · Inspirada na SCA · Primeira roda de sabores do Peru",
-    "blockedTitle": "Acesso bloqueado",
-    "blockedMessage": "Se quiser experimentar a roda de sabores, compre um café da Grain & Grains para mergulhar nesta aventura.",
-    "blockedCta": "Comprar café",
     "scoreExceptional": "Excepcional",
     "scoreExcellent": "Excelente",
     "scoreVeryGood": "Muito Bom",
@@ -25,7 +20,7 @@
     "renameSession": "Renomear sessão",
     "deleteSession": "Excluir sessão",
     "mySessions": "Minhas provas",
-    "sharedSessions": "Provas compartilhadas",
+    "sharedSessions": "Prova compartilhada",
     "copyCode": "Copiar código",
     "codeCopied": "Código copiado",
     "pasteCode": "Colar código de outra prova",
@@ -38,7 +33,19 @@
     "searchEmpty": "Sem resultados",
     "searchHint": "↑↓ navegar · ↵ escolher · esc fechar",
     "menu": "Menu",
-    "wheel": "Roda"
+    "gateTitle": "Digite seu código de rastreabilidade",
+    "gateIntro": "Cada embalagem da Grain & Grains traz o código do seu lote.",
+    "gatePlaceholder": "Código do lote",
+    "gateSubmit": "Entrar",
+    "gateChecking": "Verificando…",
+    "gateInvalid": "Código inválido ou ainda não publicado",
+    "lotScore": "Pontuação da prova",
+    "lotSession": "Lote {code}",
+    "lotApprox": "aprox.",
+    "footerClaim": "A primeira roda de sabores peruana, criada pela Grain & Grains.",
+    "buyCoffee": "Compre nosso café",
+    "noCodeYet": "Ainda não tem seu código?",
+    "orSeparator": "ou"
   },
   "seo": {
     "homeTitle": "Roda de Sabores da Grain & Grains | Prova de Café Especial",

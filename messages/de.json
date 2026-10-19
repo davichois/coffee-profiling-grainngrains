@@ -1,8 +1,6 @@
 {
   "ui": {
     "tagline": "Aromenrad",
-    "navSca": "SCA-Rad",
-    "navPeru": "Peru-Rad",
     "exportLabel": "Exportieren",
     "exportTitle": "Als PNG exportieren",
     "promptExplore": "Tippe auf ein Segment zum Erkunden",
@@ -10,9 +8,6 @@
     "tastingNotes": "Verkostungsnotizen",
     "language": "Sprache",
     "footer": "© 2026 Grain & Grains — Spezialitätenkaffee · Inspiriert von der SCA · Erstes Aromenrad Perus",
-    "blockedTitle": "Zugang gesperrt",
-    "blockedMessage": "Wenn du das Aromenrad ausprobieren möchtest, kaufe einen Kaffee von Grain & Grains, um in dieses Abenteuer einzutauchen.",
-    "blockedCta": "Kaffee kaufen",
     "scoreExceptional": "Außergewöhnlich",
     "scoreExcellent": "Hervorragend",
     "scoreVeryGood": "Sehr Gut",
@@ -25,7 +20,7 @@
     "renameSession": "Sitzung umbenennen",
     "deleteSession": "Sitzung löschen",
     "mySessions": "Meine Verkostungen",
-    "sharedSessions": "Geteilte Verkostungen",
+    "sharedSessions": "Geteilte Verkostung",
     "copyCode": "Code kopieren",
     "codeCopied": "Code kopiert",
     "pasteCode": "Code einer anderen Verkostung einfügen",
@@ -38,7 +33,19 @@
     "searchEmpty": "Keine Treffer",
     "searchHint": "↑↓ navigieren · ↵ wählen · esc schließen",
     "menu": "Menü",
-    "wheel": "Rad"
+    "gateTitle": "Gib deinen Rückverfolgbarkeitscode ein",
+    "gateIntro": "Jede Packung von Grain & Grains trägt den Code ihrer Partie.",
+    "gatePlaceholder": "Lot-Code",
+    "gateSubmit": "Eintreten",
+    "gateChecking": "Wird geprüft…",
+    "gateInvalid": "Ungültiger oder noch nicht veröffentlichter Code",
+    "lotScore": "Verkostungsbewertung",
+    "lotSession": "Lot {code}",
+    "lotApprox": "ca.",
+    "footerClaim": "Das erste peruanische Aromenrad, erstellt von Grain & Grains.",
+    "buyCoffee": "Kauf unseren Kaffee",
+    "noCodeYet": "Du hast noch keinen Code?",
+    "orSeparator": "oder"
   },
   "seo": {
     "homeTitle": "Grain & Grains Aromenrad | Verkostung von Spezialitätenkaffee",

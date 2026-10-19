@@ -1,8 +1,6 @@
 {
   "ui": {
     "tagline": "フレーバーホイール",
-    "navSca": "SCA ホイール",
-    "navPeru": "ペルー ホイール",
     "exportLabel": "エクスポート",
     "exportTitle": "PNG でエクスポート",
     "promptExplore": "セグメントをタップして探索",
@@ -10,9 +8,6 @@
     "tastingNotes": "テイスティングノート",
     "language": "言語",
     "footer": "© 2026 Grain & Grains — スペシャルティコーヒー · SCA に着想 · ペルー初のフレーバーホイール",
-    "blockedTitle": "アクセスがブロックされています",
-    "blockedMessage": "フレーバーホイールを試したい方は、Grain & Grains のコーヒーを購入して、この冒険に飛び込みましょう。",
-    "blockedCta": "コーヒーを購入",
     "scoreExceptional": "卓越",
     "scoreExcellent": "優秀",
     "scoreVeryGood": "とても良い",
@@ -38,7 +33,19 @@
     "searchEmpty": "結果なし",
     "searchHint": "↑↓ 移動 · ↵ 決定 · esc 閉じる",
     "menu": "メニュー",
-    "wheel": "ホイール"
+    "gateTitle": "トレーサビリティコードを入力",
+    "gateIntro": "Grain & Grains の各パッケージにロットコードが記載されています。",
+    "gatePlaceholder": "ロットコード",
+    "gateSubmit": "入る",
+    "gateChecking": "確認中…",
+    "gateInvalid": "無効なコード、または未公開です",
+    "lotScore": "カッピングスコア",
+    "lotSession": "ロット {code}",
+    "lotApprox": "約",
+    "footerClaim": "ペルー初のフレーバーホイール。Grain & Grains が制作。",
+    "buyCoffee": "コーヒーを購入",
+    "noCodeYet": "まだコードをお持ちでない方へ",
+    "orSeparator": "または"
   },
   "seo": {
     "homeTitle": "Grain & Grains フレーバーホイール | スペシャルティコーヒーのテイスティング",

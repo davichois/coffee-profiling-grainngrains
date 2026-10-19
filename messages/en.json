@@ -1,8 +1,6 @@
 {
   "ui": {
     "tagline": "Flavor wheel",
-    "navSca": "SCA Wheel",
-    "navPeru": "Peru Wheel",
     "exportLabel": "Export",
     "exportTitle": "Export as PNG",
     "promptExplore": "Tap a segment to explore",
@@ -10,9 +8,6 @@
     "tastingNotes": "Tasting notes",
     "language": "Language",
     "footer": "© 2026 Grain & Grains — Specialty coffee · Inspired by the SCA · First Peruvian flavor wheel",
-    "blockedTitle": "Access blocked",
-    "blockedMessage": "If you'd like to try the flavor wheel, buy a Grain & Grains coffee to dive into this adventure.",
-    "blockedCta": "Buy coffee",
     "scoreExceptional": "Exceptional",
     "scoreExcellent": "Excellent",
     "scoreVeryGood": "Very Good",
@@ -25,7 +20,7 @@
     "renameSession": "Rename session",
     "deleteSession": "Delete session",
     "mySessions": "My tastings",
-    "sharedSessions": "Shared tastings",
+    "sharedSessions": "Shared tasting",
     "copyCode": "Copy code",
     "codeCopied": "Code copied",
     "pasteCode": "Paste another tasting's code",
@@ -38,7 +33,19 @@
     "searchEmpty": "No results",
     "searchHint": "↑↓ navigate · ↵ select · esc close",
     "menu": "Menu",
-    "wheel": "Wheel"
+    "gateTitle": "Enter your traceability code",
+    "gateIntro": "Every Grain & Grains bag carries its lot's code.",
+    "gatePlaceholder": "Lot code",
+    "gateSubmit": "Enter",
+    "gateChecking": "Checking…",
+    "gateInvalid": "Invalid code, or not published yet",
+    "lotScore": "Cupping score",
+    "lotSession": "Lot {code}",
+    "lotApprox": "approx.",
+    "footerClaim": "The first Peruvian flavor wheel, created by Grain & Grains.",
+    "buyCoffee": "Buy our coffee",
+    "noCodeYet": "Don't have your code yet?",
+    "orSeparator": "or"
   },
   "seo": {
     "homeTitle": "Grain & Grains Flavor Wheel | Specialty Coffee Tasting",
