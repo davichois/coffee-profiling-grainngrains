@@ -2,6 +2,12 @@
 // Reads the lot behind a traceability code. Everything here already exists in
 // the database: `fls_trazabilidad` is callable with the public key and only
 // answers for published lots, which is what gates the app.
+//
+// A cupping is recorded in two forms and both have to be read. `fls_trazabilidad`
+// carries only the affective (CVA) descriptors the cupper typed — "Pasas",
+// "Fresa" — while the descriptive form lives in `fls_catacion_detalle` as ticks
+// on the SCA families: "Bayas", "Ácido / Fermentado", "Frutas deshidratadas".
+// Reading the first alone left whole descriptors off the wheel.
 
 const URL_BASE = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
@@ -93,18 +99,10 @@ function parseLot(raw: unknown): Lot | null {
   };
 }
 
-/**
- * Looks a code up. Returns null for anything the database declines to answer —
- * an unknown code, or a lot that is not published yet. Both look identical from
- * here, which is the point.
- */
-export async function fetchLot(input: string): Promise<Lot | null> {
-  const code = normalizeCode(input);
-  if (!code || !URL_BASE || !ANON_KEY) return null;
-
-  let payload: unknown;
+/** One POST to a Postgres function with the public key. */
+async function rpc(name: string, code: string): Promise<unknown> {
   try {
-    const res = await fetch(`${URL_BASE}/rest/v1/rpc/fls_trazabilidad`, {
+    const res = await fetch(`${URL_BASE}/rest/v1/rpc/${name}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -114,12 +112,118 @@ export async function fetchLot(input: string): Promise<Lot | null> {
       body: JSON.stringify({ p_codigo: code }),
     });
     if (!res.ok) return null;
-    payload = await res.json();
+    return await res.json();
   } catch {
     return null;
   }
+}
+
+/**
+ * The descriptive form stores a tick per descriptor id, the same catalogue the
+ * cupping app writes. The ids are stable; their Spanish labels are what the
+ * wheel is matched against.
+ */
+const DESCRIPTIVE_LABELS: Record<string, string> = {
+  floral: "Floral",
+  afrutado: "Afrutado",
+  bayas: "Bayas",
+  frutas_des: "Frutas deshidratadas",
+  citricos: "Cítricos",
+  acido_ferm: "Ácido / Fermentado",
+  acido: "Ácido",
+  fermentado: "Fermentado",
+  verde: "Verde / Vegetal",
+  tostado: "Tostado",
+  cereal: "Cereal",
+  quemado: "Quemado",
+  tabaco: "Tabaco",
+  nueces_cacao: "Nueces / Cacao",
+  nueces: "Nueces",
+  cacao: "Cacao",
+  especias: "Especias",
+  otra: "Otra",
+  quimico: "Químico",
+  humedad: "Humedad / Tierra",
+  madera: "Madera",
+  dulce: "Dulce",
+  vainilla: "Vainilla",
+  azucar: "Azúcar morena",
+};
+
+/**
+ * Every descriptor the cupping sheet marks, in the order a reader meets them:
+ * the descriptive ticks first, then the affective labels. Several cuppers may
+ * have filled the same sheet, so ids repeat and are collapsed.
+ */
+function parseCuppingSheet(payload: unknown): string[] {
+  const rows = Array.isArray(payload) ? payload : [];
+  const descriptive: string[] = [];
+  const affective: string[] = [];
+
+  for (const row of rows) {
+    const kind = str(dig(row, "tipo"));
+    const data = dig(row, "datos");
+
+    if (kind === "descriptivo") {
+      const attributes = (dig(data, "attributes") ?? {}) as Bag;
+      for (const attribute of Object.values(attributes)) {
+        const ticks = (dig(attribute, "descriptors") ?? {}) as Bag;
+        for (const [id, on] of Object.entries(ticks)) {
+          const label = on === true ? DESCRIPTIVE_LABELS[id] : null;
+          if (label) descriptive.push(label);
+        }
+      }
+    }
+
+    if (kind === "afectivo") {
+      // Grouped by where it was perceived ("olfato", "sabor"); the group only
+      // says where, so the labels are taken flat.
+      const groups = (dig(data, "descriptors") ?? {}) as Bag;
+      for (const list of Object.values(groups)) {
+        if (!Array.isArray(list)) continue;
+        for (const item of list) {
+          const label = str(dig(item, "label"));
+          if (label) affective.push(label);
+        }
+      }
+    }
+  }
+
+  return [...new Set([...descriptive, ...affective])];
+}
+
+/**
+ * Looks a code up. Returns null for anything the database declines to answer —
+ * an unknown code, or a lot that is not published yet. Both look identical from
+ * here, which is the point.
+ */
+export async function fetchLot(input: string): Promise<Lot | null> {
+  const code = normalizeCode(input);
+  if (!code || !URL_BASE || !ANON_KEY) return null;
+
+  // The sheet is asked for alongside the lot: it is a separate function, and a
+  // lot with no sheet still opens the wheel on whatever the lot itself carries.
+  const [payload, sheet] = await Promise.all([
+    rpc("fls_trazabilidad", code),
+    rpc("fls_catacion_detalle", code),
+  ]);
 
   // The function may answer with the object itself or a single-row array.
   const row = Array.isArray(payload) ? payload[0] : payload;
-  return parseLot(row);
+  const lot = parseLot(row);
+  if (!lot) return null;
+
+  const fromSheet = parseCuppingSheet(sheet);
+  if (fromSheet.length === 0) return lot;
+
+  // The sheet is the fuller record, so it leads; anything the lot named that
+  // the sheet does not repeat is kept after it.
+  const seen = new Set(fromSheet.map((d) => d.toLowerCase()));
+  return {
+    ...lot,
+    descriptors: [
+      ...fromSheet,
+      ...lot.descriptors.filter((d) => !seen.has(d.toLowerCase())),
+    ],
+  };
 }
